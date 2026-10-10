@@ -1,0 +1,1122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PulseDesk CRM | Next-Gen AI & Telegram Customer Support Platform</title>
+  <meta name="description" content="Next-Generation Omnichannel Customer Support CRM featuring real-time Telegram Bot integration, Kanban ticket triage, and executive analytics.">
+  
+  <!-- Modern Typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Chart.js for Executive Analytics -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="dark-theme">
+  <!-- Top App Navigation -->
+  <header class="app-header">
+    <div class="header-left">
+      <button class="menu-toggle-btn" id="sidebarToggle" aria-label="Toggle Sidebar">
+        <i data-lucide="menu"></i>
+      </button>
+      <div class="brand-container">
+        <div class="brand-logo-aura">
+          <i data-lucide="shield-check" class="brand-icon"></i>
+        </div>
+        <div class="brand-text">
+          <div class="brand-title">Pulse<span class="brand-accent">Desk</span></div>
+          <span class="brand-badge">OmniChannel CRM</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Search Bar -->
+    <div class="header-center">
+      <div class="global-search-wrapper">
+        <i data-lucide="search" class="search-icon"></i>
+        <input type="text" id="globalSearchInput" placeholder="Search tickets, customers, Telegram IDs, tags... (Press /)" autocomplete="off">
+        <span class="search-kbd">⌘K</span>
+      </div>
+    </div>
+
+    <!-- Header Actions -->
+    <div class="header-right">
+      <!-- Portal Mode Switcher -->
+      <div class="portal-switch-pill">
+        <button class="portal-pill-btn active" id="btnAdminView">
+          <i data-lucide="layout-dashboard"></i>
+          <span>Admin Center</span>
+        </button>
+        <button class="portal-pill-btn" id="btnCustomerView">
+          <i data-lucide="user"></i>
+          <span>Customer Portal</span>
+        </button>
+      </div>
+
+      <!-- Telegram Live Status Pill -->
+      <div class="telegram-pill-status" id="telegramHeaderBadge" title="Telegram Bot Sync Status">
+        <span class="status-dot pulsing"></span>
+        <i data-lucide="send" class="tg-icon-small"></i>
+        <span id="telegramStatusText">Telegram Live</span>
+      </div>
+
+      <!-- Quick Action: Create Ticket -->
+      <button class="btn-primary create-ticket-btn" id="openNewTicketModalBtn">
+        <i data-lucide="plus-circle"></i>
+        <span>New Ticket</span>
+      </button>
+
+      <!-- Admin Profile Dropdown -->
+      <div class="user-profile-badge">
+        <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&auto=format&fit=crop&q=80" alt="Admin Avatar" class="profile-avatar">
+        <div class="profile-info">
+          <span class="profile-name">Sarah Connor</span>
+          <span class="profile-role">Super Admin</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main CRM Application Shell -->
+  <div class="app-shell">
+    <!-- Left Navigation Sidebar -->
+    <aside class="app-sidebar" id="appSidebar">
+      <nav class="sidebar-nav">
+        <div class="nav-section-label">MAIN WORKSPACE</div>
+        <a href="#dashboard" class="nav-item active" data-tab="dashboard">
+          <i data-lucide="layout-grid"></i>
+          <span>Executive Dashboard</span>
+        </a>
+        <a href="#tickets" class="nav-item" data-tab="tickets">
+          <i data-lucide="ticket"></i>
+          <span>Tickets Center</span>
+          <span class="nav-badge" id="sidebarOpenTicketBadge">0</span>
+        </a>
+        <a href="#telegram" class="nav-item" data-tab="telegram">
+          <i data-lucide="send"></i>
+          <span>Telegram Integration</span>
+          <span class="nav-pulse-dot"></span>
+        </a>
+        <a href="#customers" class="nav-item" data-tab="customers">
+          <i data-lucide="users"></i>
+          <span>Customer Directory</span>
+        </a>
+        <a href="#analytics" class="nav-item" data-tab="analytics">
+          <i data-lucide="bar-chart-3"></i>
+          <span>SLA & Analytics</span>
+        </a>
+
+        <div class="nav-section-label">MANAGEMENT</div>
+        <a href="#agents" class="nav-item" data-tab="agents">
+          <i data-lucide="user-check"></i>
+          <span>Support Agents</span>
+        </a>
+        <a href="#settings" class="nav-item" data-tab="settings">
+          <i data-lucide="settings"></i>
+          <span>Settings & Webhook</span>
+        </a>
+      </nav>
+
+      <!-- Sidebar Footer Stats -->
+      <div class="sidebar-footer-card">
+        <div class="footer-card-header">
+          <i data-lucide="zap" class="zap-icon"></i>
+          <span>SLA Compliance</span>
+        </div>
+        <div class="footer-progress-bar">
+          <div class="progress-fill" style="width: 98.4%;"></div>
+        </div>
+        <div class="footer-card-stats">
+          <span>98.4% On-Time</span>
+          <span class="text-success">&lt; 15m Avg Reply</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="app-main" id="appMain">
+      
+      <!-- TAB 1: EXECUTIVE DASHBOARD -->
+      <section class="tab-panel active" id="tab-dashboard">
+        <div class="panel-header">
+          <div>
+            <h1 class="panel-title">Operations Command Center</h1>
+            <p class="panel-subtitle">Real-time support operations, customer inquiries, and Telegram bot streams.</p>
+          </div>
+          <div class="panel-header-actions">
+            <button class="btn-secondary" id="refreshDashboardBtn">
+              <i data-lucide="refresh-cw"></i>
+              <span>Live Sync</span>
+            </button>
+            <button class="btn-primary" id="dashboardNewTicketBtn">
+              <i data-lucide="plus"></i>
+              <span>Quick Ticket</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Metric KPI Cards -->
+        <div class="kpi-grid">
+          <div class="kpi-card glow-cyan">
+            <div class="kpi-icon-wrap bg-cyan-soft">
+              <i data-lucide="inbox" class="kpi-icon text-cyan"></i>
+            </div>
+            <div class="kpi-content">
+              <span class="kpi-label">Active Tickets</span>
+              <div class="kpi-value-row">
+                <span class="kpi-value" id="kpiActiveTickets">0</span>
+                <span class="kpi-trend trend-neutral">In Queue</span>
+              </div>
+              <span class="kpi-subtext" id="kpiUrgentSubtext">0 Urgent SLA pending</span>
+            </div>
+          </div>
+
+          <div class="kpi-card glow-indigo">
+            <div class="kpi-icon-wrap bg-indigo-soft">
+              <i data-lucide="send" class="kpi-icon text-indigo"></i>
+            </div>
+            <div class="kpi-content">
+              <span class="kpi-label">Telegram Channels</span>
+              <div class="kpi-value-row">
+                <span class="kpi-value" id="kpiTelegramTickets">0</span>
+                <span class="kpi-trend trend-up">2-Way Sync</span>
+              </div>
+              <span class="kpi-subtext">Connected bot chats</span>
+            </div>
+          </div>
+
+          <div class="kpi-card glow-emerald">
+            <div class="kpi-icon-wrap bg-emerald-soft">
+              <i data-lucide="check-circle-2" class="kpi-icon text-emerald"></i>
+            </div>
+            <div class="kpi-content">
+              <span class="kpi-label">Resolved Today</span>
+              <div class="kpi-value-row">
+                <span class="kpi-value" id="kpiResolvedTickets">0</span>
+                <span class="kpi-trend trend-up">+18% vs Wk</span>
+              </div>
+              <span class="kpi-subtext" id="kpiAvgHours">Avg. 2.1 hrs resolution</span>
+            </div>
+          </div>
+
+          <div class="kpi-card glow-amber">
+            <div class="kpi-icon-wrap bg-amber-soft">
+              <i data-lucide="star" class="kpi-icon text-amber"></i>
+            </div>
+            <div class="kpi-content">
+              <span class="kpi-label">CSAT Satisfaction</span>
+              <div class="kpi-value-row">
+                <span class="kpi-value" id="kpiCsatScore">98.4%</span>
+                <span class="kpi-trend trend-up">Excellent</span>
+              </div>
+              <span class="kpi-subtext">Based on 142 feedbacks</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dashboard Two-Column Layout -->
+        <div class="dash-columns-grid">
+          <!-- Recent Urgent & Active Tickets -->
+          <div class="dash-card">
+            <div class="dash-card-header">
+              <div class="dash-card-title-group">
+                <i data-lucide="alert-triangle" class="text-amber"></i>
+                <h3>High Priority & Urgent Queue</h3>
+              </div>
+              <button class="btn-text" id="viewAllTicketsFromDash">View All &rarr;</button>
+            </div>
+            <div class="dash-card-body" id="urgentTicketsList">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+
+          <!-- Telegram Bot Real-time Feed -->
+          <div class="dash-card">
+            <div class="dash-card-header">
+              <div class="dash-card-title-group">
+                <i data-lucide="radio" class="text-cyan pulsing-icon"></i>
+                <h3>Live Telegram Stream</h3>
+              </div>
+              <button class="btn-text" id="openTelegramSimulatorQuick">Open Simulator &rarr;</button>
+            </div>
+            <div class="dash-card-body" id="telegramLiveFeed">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Analytics Preview Chart -->
+        <div class="dash-card mt-6">
+          <div class="dash-card-header">
+            <div class="dash-card-title-group">
+              <i data-lucide="trending-up" class="text-indigo"></i>
+              <h3>Weekly Influx & Resolution Trajectory</h3>
+            </div>
+            <div class="chart-legend-row">
+              <span class="legend-dot bg-indigo"></span> New Tickets
+              <span class="legend-dot bg-emerald ml-4"></span> Resolved
+              <span class="legend-dot bg-cyan ml-4"></span> Telegram Bot
+            </div>
+          </div>
+          <div class="dash-card-body chart-container-large">
+            <canvas id="dashboardOverviewChart"></canvas>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 2: TICKETS CENTER (KANBAN & LIST) -->
+      <section class="tab-panel" id="tab-tickets">
+        <div class="panel-header">
+          <div>
+            <h1 class="panel-title">Ticket Management</h1>
+            <p class="panel-subtitle">Triage, assign, resolve customer requests, and sync live with Telegram.</p>
+          </div>
+          <div class="panel-header-actions">
+            <!-- View Mode Switcher -->
+            <div class="view-toggle-group">
+              <button class="view-btn active" id="viewKanbanBtn" title="Kanban Board View">
+                <i data-lucide="kanban"></i>
+                <span>Kanban</span>
+              </button>
+              <button class="view-btn" id="viewListBtn" title="Table / List View">
+                <i data-lucide="list"></i>
+                <span>List</span>
+              </button>
+            </div>
+
+            <button class="btn-primary" id="ticketCenterNewTicketBtn">
+              <i data-lucide="plus"></i>
+              <span>Create Ticket</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Filter Controls Bar -->
+        <div class="ticket-filter-bar">
+          <div class="filter-group">
+            <label for="filterStatus">Status:</label>
+            <select id="filterStatus" class="form-select">
+              <option value="ALL">All Statuses</option>
+              <option value="OPEN">Open</option>
+              <option value="IN_PROGRESS">In Progress</option>
+              <option value="WAITING_CUSTOMER">Waiting on Customer</option>
+              <option value="RESOLVED">Resolved</option>
+              <option value="CLOSED">Closed</option>
+            </select>
+          </div>
+
+          <div class="filter-group">
+            <label for="filterPriority">Priority:</label>
+            <select id="filterPriority" class="form-select">
+              <option value="ALL">All Priorities</option>
+              <option value="URGENT">Urgent</option>
+              <option value="HIGH">High</option>
+              <option value="MEDIUM">Medium</option>
+              <option value="LOW">Low</option>
+            </select>
+          </div>
+
+          <div class="filter-group">
+            <label for="filterChannel">Channel:</label>
+            <select id="filterChannel" class="form-select">
+              <option value="ALL">All Channels</option>
+              <option value="TELEGRAM">Telegram Bot</option>
+              <option value="WEB_PORTAL">Web Portal</option>
+            </select>
+          </div>
+
+          <div class="filter-search-box">
+            <i data-lucide="search"></i>
+            <input type="text" id="ticketsSearchInput" placeholder="Filter tickets...">
+          </div>
+
+          <button class="btn-secondary btn-icon-only" id="resetFiltersBtn" title="Reset Filters">
+            <i data-lucide="rotate-ccw"></i>
+          </button>
+        </div>
+
+        <!-- KANBAN VIEW CONTAINER -->
+        <div class="kanban-board-container" id="kanbanBoardView">
+          <!-- Column 1: OPEN -->
+          <div class="kanban-column" data-status="OPEN">
+            <div class="kanban-column-header">
+              <div class="column-title-pill pill-yellow">
+                <span class="status-indicator yellow"></span>
+                <span>Open</span>
+              </div>
+              <span class="column-count" id="count-OPEN">0</span>
+            </div>
+            <div class="kanban-cards-wrapper" id="kanban-col-OPEN"></div>
+          </div>
+
+          <!-- Column 2: IN_PROGRESS -->
+          <div class="kanban-column" data-status="IN_PROGRESS">
+            <div class="kanban-column-header">
+              <div class="column-title-pill pill-blue">
+                <span class="status-indicator blue"></span>
+                <span>In Progress</span>
+              </div>
+              <span class="column-count" id="count-IN_PROGRESS">0</span>
+            </div>
+            <div class="kanban-cards-wrapper" id="kanban-col-IN_PROGRESS"></div>
+          </div>
+
+          <!-- Column 3: WAITING_CUSTOMER -->
+          <div class="kanban-column" data-status="WAITING_CUSTOMER">
+            <div class="kanban-column-header">
+              <div class="column-title-pill pill-orange">
+                <span class="status-indicator orange"></span>
+                <span>Waiting Customer</span>
+              </div>
+              <span class="column-count" id="count-WAITING_CUSTOMER">0</span>
+            </div>
+            <div class="kanban-cards-wrapper" id="kanban-col-WAITING_CUSTOMER"></div>
+          </div>
+
+          <!-- Column 4: RESOLVED -->
+          <div class="kanban-column" data-status="RESOLVED">
+            <div class="kanban-column-header">
+              <div class="column-title-pill pill-green">
+                <span class="status-indicator green"></span>
+                <span>Resolved</span>
+              </div>
+              <span class="column-count" id="count-RESOLVED">0</span>
+            </div>
+            <div class="kanban-cards-wrapper" id="kanban-col-RESOLVED"></div>
+          </div>
+
+          <!-- Column 5: CLOSED -->
+          <div class="kanban-column" data-status="CLOSED">
+            <div class="kanban-column-header">
+              <div class="column-title-pill pill-gray">
+                <span class="status-indicator gray"></span>
+                <span>Closed</span>
+              </div>
+              <span class="column-count" id="count-CLOSED">0</span>
+            </div>
+            <div class="kanban-cards-wrapper" id="kanban-col-CLOSED"></div>
+          </div>
+        </div>
+
+        <!-- LIST / TABLE VIEW CONTAINER -->
+        <div class="ticket-list-container hidden" id="ticketListView">
+          <div class="table-responsive">
+            <table class="data-table" id="ticketsDataTable">
+              <thead>
+                <tr>
+                  <th>Ticket ID</th>
+                  <th>Subject</th>
+                  <th>Customer</th>
+                  <th>Channel</th>
+                  <th>Priority</th>
+                  <th>Status</th>
+                  <th>Assigned</th>
+                  <th>Updated</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="ticketsTableBody">
+                <!-- Injected via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 3: TELEGRAM INTEGRATION HUB -->
+      <section class="tab-panel" id="tab-telegram">
+        <div class="panel-header">
+          <div>
+            <h1 class="panel-title">Telegram Integration Hub</h1>
+            <p class="panel-subtitle">Direct 2-way live sync between Telegram bot customers and PulseDesk CRM agents.</p>
+          </div>
+          <div class="panel-header-actions">
+            <button class="btn-secondary" id="testTelegramConnBtn">
+              <i data-lucide="wifi"></i>
+              <span>Test Bot API</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="telegram-hub-grid">
+          <!-- Bot Setup & Credentials Card -->
+          <div class="dash-card">
+            <div class="dash-card-header">
+              <div class="dash-card-title-group">
+                <i data-lucide="key" class="text-indigo"></i>
+                <h3>Telegram Bot API Configuration</h3>
+              </div>
+              <span class="badge-status-pill" id="telegramConfigBadge">Polling Active</span>
+            </div>
+            <div class="dash-card-body">
+              <p class="text-muted mb-4">
+                Connect your bot token created via <strong>@BotFather</strong> on Telegram. When users chat with your bot, tickets are created and replies are delivered directly to their Telegram screen.
+              </p>
+
+              <form id="telegramTokenForm">
+                <div class="form-group mb-4">
+                  <label for="telegramBotTokenInput">Bot API Token:</label>
+                  <div class="input-with-button">
+                    <input type="password" id="telegramBotTokenInput" class="form-input" placeholder="e.g. 7483921045:AAHk...-9xZa3b" autocomplete="off">
+                    <button type="button" class="btn-secondary btn-icon-only" id="toggleTokenVisibility" title="Toggle Visibility">
+                      <i data-lucide="eye"></i>
+                    </button>
+                  </div>
+                  <small class="form-help">Token is safely stored in local server configuration.</small>
+                </div>
+
+                <div class="bot-info-card" id="botInfoBox">
+                  <div class="bot-info-row">
+                    <span>Bot Username:</span>
+                    <strong id="botUsernameText">Not set (Simulator Ready)</strong>
+                  </div>
+                  <div class="bot-info-row">
+                    <span>Polling Status:</span>
+                    <strong class="text-success" id="botPollingStatus">Ready</strong>
+                  </div>
+                </div>
+
+                <div class="form-actions mt-4">
+                  <button type="submit" class="btn-primary" id="saveTelegramTokenBtn">
+                    <i data-lucide="save"></i>
+                    <span>Save & Connect Bot</span>
+                  </button>
+                </div>
+              </form>
+
+              <!-- How to setup guide -->
+              <div class="setup-guide-box mt-6">
+                <h4><i data-lucide="info"></i> Quick 3-Step Telegram Setup:</h4>
+                <ol>
+                  <li>Open Telegram and search for <code>@BotFather</code>.</li>
+                  <li>Send <code>/newbot</code>, choose a name and username ending with <code>bot</code>.</li>
+                  <li>Copy the HTTP API Token, paste it above, and click <strong>Save & Connect</strong>!</li>
+                </ol>
+              </div>
+            </div>
+          </div>
+
+          <!-- Interactive Telegram Web Simulator -->
+          <div class="dash-card telegram-sim-card">
+            <div class="dash-card-header">
+              <div class="dash-card-title-group">
+                <i data-lucide="smartphone" class="text-cyan"></i>
+                <h3>Live Interactive Telegram Simulator</h3>
+              </div>
+              <span class="badge-pill bg-cyan-soft text-cyan">Instant Test</span>
+            </div>
+            <div class="dash-card-body sim-body-layout">
+              <p class="text-muted mb-2 text-sm">
+                Test the exact customer Telegram experience right here! Type commands like <code>/ticket [your problem]</code> or <code>/status PD-1001</code>.
+              </p>
+
+              <!-- Smartphone Mockup -->
+              <div class="phone-frame">
+                <div class="phone-screen">
+                  <!-- Telegram Header -->
+                  <div class="phone-header">
+                    <div class="phone-notch"></div>
+                    <div class="phone-chat-bar">
+                      <div class="tg-avatar-circle">
+                        <i data-lucide="bot"></i>
+                      </div>
+                      <div class="tg-chat-meta">
+                        <span class="tg-chat-name">PulseDesk Support Bot</span>
+                        <span class="tg-chat-sub">bot &bull; always online</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Messages Container -->
+                  <div class="phone-messages" id="simMessagesContainer">
+                    <div class="tg-bubble tg-bubble-incoming">
+                      <div class="tg-msg-sender">PulseDesk Bot</div>
+                      <div class="tg-msg-text">👋 Welcome to PulseDesk Support! Send any issue description or use <code>/ticket &lt;issue&gt;</code> to open a ticket.</div>
+                      <div class="tg-msg-time">10:00 AM</div>
+                    </div>
+                  </div>
+
+                  <!-- Simulator Quick Command Chips -->
+                  <div class="sim-quick-chips">
+                    <button class="sim-chip" data-cmd="/ticket Unable to connect to staging database">/ticket New Issue</button>
+                    <button class="sim-chip" data-cmd="/status PD-1001">/status PD-1001</button>
+                    <button class="sim-chip" data-cmd="/help">/help</button>
+                  </div>
+
+                  <!-- Chat Input Bar -->
+                  <form class="phone-input-bar" id="simChatForm">
+                    <input type="text" id="simMessageInput" placeholder="Message Telegram bot..." autocomplete="off">
+                    <button type="submit" class="btn-send-sim">
+                      <i data-lucide="send"></i>
+                    </button>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Telegram Logs & Event Stream -->
+        <div class="dash-card mt-6">
+          <div class="dash-card-header">
+            <div class="dash-card-title-group">
+              <i data-lucide="activity" class="text-emerald"></i>
+              <h3>Real-time Telegram Event Logs</h3>
+            </div>
+            <button class="btn-secondary" id="refreshTelegramLogsBtn">
+              <i data-lucide="refresh-cw"></i>
+              <span>Refresh Logs</span>
+            </button>
+          </div>
+          <div class="dash-card-body">
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Type</th>
+                    <th>Participant</th>
+                    <th>Payload / Message</th>
+                    <th>Timestamp</th>
+                  </tr>
+                </thead>
+                <tbody id="telegramLogsTableBody">
+                  <!-- Filled via JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 4: CUSTOMER DIRECTORY -->
+      <section class="tab-panel" id="tab-customers">
+        <div class="panel-header">
+          <div>
+            <h1 class="panel-title">Customer Relationship Directory</h1>
+            <p class="panel-subtitle">Profiles, organizations, lifetime ticket count, and linked Telegram contacts.</p>
+          </div>
+          <div class="panel-header-actions">
+            <div class="filter-search-box">
+              <i data-lucide="search"></i>
+              <input type="text" id="customerSearchInput" placeholder="Search customers...">
+            </div>
+          </div>
+        </div>
+
+        <div class="dash-card">
+          <div class="dash-card-body">
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Customer Name</th>
+                    <th>Company</th>
+                    <th>Email Address</th>
+                    <th>Telegram Username</th>
+                    <th>Status</th>
+                    <th>Total Tickets</th>
+                    <th>Joined</th>
+                  </tr>
+                </thead>
+                <tbody id="customersTableBody">
+                  <!-- Filled via JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 5: ANALYTICS & SLA -->
+      <section class="tab-panel" id="tab-analytics">
+        <div class="panel-header">
+          <div>
+            <h1 class="panel-title">Support Analytics & SLA Benchmarks</h1>
+            <p class="panel-subtitle">Performance breakdown by department, channel distribution, and response time.</p>
+          </div>
+          <div class="panel-header-actions">
+            <button class="btn-secondary" id="exportReportBtn">
+              <i data-lucide="download"></i>
+              <span>Export CSV</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="analytics-grid">
+          <div class="dash-card">
+            <div class="dash-card-header">
+              <h3>Tickets by Department</h3>
+            </div>
+            <div class="dash-card-body chart-container-medium">
+              <canvas id="deptChart"></canvas>
+            </div>
+          </div>
+
+          <div class="dash-card">
+            <div class="dash-card-header">
+              <h3>Channel Distribution (Telegram vs Web)</h3>
+            </div>
+            <div class="dash-card-body chart-container-medium">
+              <canvas id="channelChart"></canvas>
+            </div>
+          </div>
+
+          <div class="dash-card">
+            <div class="dash-card-header">
+              <h3>Priority Severity Breakdown</h3>
+            </div>
+            <div class="dash-card-body chart-container-medium">
+              <canvas id="priorityChart"></canvas>
+            </div>
+          </div>
+
+          <div class="dash-card">
+            <div class="dash-card-header">
+              <h3>Resolution Status Velocity</h3>
+            </div>
+            <div class="dash-card-body chart-container-medium">
+              <canvas id="statusChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 6: AGENTS -->
+      <section class="tab-panel" id="tab-agents">
+        <div class="panel-header">
+          <div>
+            <h1 class="panel-title">Support Team & Agent Management</h1>
+            <p class="panel-subtitle">Support team roster, assignment workload, and performance metrics.</p>
+          </div>
+        </div>
+
+        <div class="agents-grid" id="agentsCardsGrid">
+          <!-- Rendered via JS -->
+        </div>
+      </section>
+
+      <!-- TAB 7: SETTINGS -->
+      <section class="tab-panel" id="tab-settings">
+        <div class="panel-header">
+          <div>
+            <h1 class="panel-title">System & Automation Settings</h1>
+            <p class="panel-subtitle">Configure auto-assignment, notification templates, and company branding.</p>
+          </div>
+        </div>
+
+        <div class="dash-card max-w-3xl">
+          <div class="dash-card-body">
+            <form id="systemSettingsForm">
+              <div class="form-group mb-4">
+                <label for="settingCompanyName">Company / Platform Name:</label>
+                <input type="text" id="settingCompanyName" class="form-input" value="PulseDesk Omnichannel CRM">
+              </div>
+
+              <div class="form-group mb-4">
+                <label for="settingWelcomeMessage">Telegram Bot Welcome Greeting:</label>
+                <textarea id="settingWelcomeMessage" class="form-textarea" rows="3"></textarea>
+              </div>
+
+              <div class="form-check-group mb-4">
+                <label class="toggle-switch">
+                  <input type="checkbox" id="settingAutoAssign" checked>
+                  <span class="toggle-slider"></span>
+                </label>
+                <div>
+                  <strong>Smart Auto-Assignment</strong>
+                  <p class="text-muted text-sm">Automatically distribute new incoming tickets to the support agent with the lowest active queue.</p>
+                </div>
+              </div>
+
+              <div class="form-check-group mb-6">
+                <label class="toggle-switch">
+                  <input type="checkbox" id="settingTelegramEnabled" checked>
+                  <span class="toggle-slider"></span>
+                </label>
+                <div>
+                  <strong>Enable Telegram Bot Gateway</strong>
+                  <p class="text-muted text-sm">Allow incoming Telegram messages to open and update support tickets in real-time.</p>
+                </div>
+              </div>
+
+              <button type="submit" class="btn-primary">
+                <i data-lucide="check"></i>
+                <span>Save System Settings</span>
+              </button>
+            </form>
+          </div>
+        </div>
+      </section>
+
+      <!-- CUSTOMER SELF-SERVICE PORTAL (PUBLIC FACING VIEW) -->
+      <section class="customer-portal-view hidden" id="customerPortalContainer">
+        <div class="portal-hero">
+          <div class="portal-hero-badge">PulseDesk Customer Care</div>
+          <h1 class="portal-hero-title">How can our support team help you today?</h1>
+          <p class="portal-hero-subtitle">Open a new ticket, track an existing inquiry, or chat with our automated Telegram concierge.</p>
+        </div>
+
+        <div class="portal-grid">
+          <!-- Submit Ticket Card -->
+          <div class="portal-card">
+            <div class="portal-card-header">
+              <i data-lucide="plus-circle" class="text-indigo"></i>
+              <h2>Open a New Support Ticket</h2>
+            </div>
+            <form id="customerSubmitTicketForm">
+              <div class="form-group mb-3">
+                <label for="custName">Your Full Name:</label>
+                <input type="text" id="custName" class="form-input" placeholder="e.g. Liam Gallagher" required>
+              </div>
+
+              <div class="form-group mb-3">
+                <label for="custEmail">Email Address:</label>
+                <input type="email" id="custEmail" class="form-input" placeholder="name@company.com" required>
+              </div>
+
+              <div class="form-group mb-3">
+                <label for="custCompany">Company / Organization:</label>
+                <input type="text" id="custCompany" class="form-input" placeholder="e.g. Oasis Tech Global">
+              </div>
+
+              <div class="form-row mb-3">
+                <div class="form-group flex-1">
+                  <label for="custDept">Department:</label>
+                  <select id="custDept" class="form-select">
+                    <option value="Technical Support">Technical Support</option>
+                    <option value="Billing">Billing & Accounting</option>
+                    <option value="Product">Product Feedback</option>
+                    <option value="General">General Inquiry</option>
+                  </select>
+                </div>
+                <div class="form-group flex-1">
+                  <label for="custPriority">Urgency:</label>
+                  <select id="custPriority" class="form-select">
+                    <option value="LOW">Low</option>
+                    <option value="MEDIUM" selected>Medium</option>
+                    <option value="HIGH">High</option>
+                    <option value="URGENT">Urgent (Production Down)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-group mb-3">
+                <label for="custSubject">Ticket Subject / Title:</label>
+                <input type="text" id="custSubject" class="form-input" placeholder="Brief summary of your issue..." required>
+              </div>
+
+              <div class="form-group mb-4">
+                <label for="custDescription">Issue Description & Error Details:</label>
+                <textarea id="custDescription" class="form-textarea" rows="4" placeholder="Please describe the steps to reproduce or issue details..." required></textarea>
+              </div>
+
+              <button type="submit" class="btn-primary w-full">
+                <i data-lucide="send"></i>
+                <span>Submit Ticket</span>
+              </button>
+            </form>
+          </div>
+
+          <!-- Telegram Connect & Track Ticket Card -->
+          <div class="portal-right-column">
+            <!-- Track Ticket Card -->
+            <div class="portal-card mb-6">
+              <div class="portal-card-header">
+                <i data-lucide="search" class="text-cyan"></i>
+                <h2>Track Existing Ticket</h2>
+              </div>
+              <div class="input-with-button">
+                <input type="text" id="portalTrackTicketId" class="form-input" placeholder="Enter Ticket ID (e.g. PD-1001)">
+                <button type="button" class="btn-secondary" id="portalTrackTicketBtn">Lookup</button>
+              </div>
+              <div id="portalTrackResult" class="mt-4 hidden"></div>
+            </div>
+
+            <!-- Telegram Bot Banner Card -->
+            <div class="portal-card tg-promo-card">
+              <div class="tg-promo-icon">
+                <i data-lucide="send"></i>
+              </div>
+              <h3>Prefer Telegram Support?</h3>
+              <p>Chat directly with our team on Telegram 24/7. Get instant status alerts and resolve issues faster.</p>
+              <button class="btn-telegram-large" id="portalOpenTelegramBtn">
+                <i data-lucide="message-square"></i>
+                <span>Chat via Telegram Concierge</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- MODAL: TICKET RESOLVER & CONVERSATION THREAD (ADMIN) -->
+  <div class="modal-overlay hidden" id="ticketModalOverlay">
+    <div class="ticket-drawer" id="ticketDrawer">
+      <!-- Drawer Header -->
+      <div class="drawer-header">
+        <div class="drawer-header-left">
+          <span class="ticket-badge-id" id="drawerTicketId">PD-1001</span>
+          <h2 class="drawer-ticket-title" id="drawerTicketTitle">Ticket Title</h2>
+        </div>
+        <div class="drawer-header-actions">
+          <button class="btn-secondary btn-icon-only" id="deleteTicketBtn" title="Delete Ticket">
+            <i data-lucide="trash-2"></i>
+          </button>
+          <button class="btn-icon-only modal-close-btn" id="closeDrawerBtn" title="Close">
+            <i data-lucide="x"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Drawer Content: 2-Columns (Details / Sidebar + Chat Thread) -->
+      <div class="drawer-body">
+        <!-- Left / Center: Conversation Thread & Reply -->
+        <div class="drawer-main-conversation">
+          <!-- Ticket Initial Customer Info Banner -->
+          <div class="ticket-customer-strip">
+            <div class="cust-strip-avatar">
+              <i data-lucide="user"></i>
+            </div>
+            <div class="cust-strip-info">
+              <strong id="drawerCustomerName">Liam Gallagher</strong>
+              <span id="drawerCustomerEmail">liam@oasis-tech.com</span>
+            </div>
+            <div class="cust-strip-channel" id="drawerChannelBadge">
+              <i data-lucide="send"></i>
+              <span>Telegram Channel</span>
+            </div>
+          </div>
+
+          <!-- Messages Stream -->
+          <div class="messages-stream" id="drawerMessagesStream">
+            <!-- Messages rendered dynamically -->
+          </div>
+
+          <!-- Quick Templates Bar -->
+          <div class="canned-responses-bar">
+            <span class="canned-label"><i data-lucide="zap"></i> Quick Reply:</span>
+            <button class="canned-btn" data-reply="Hi! We have investigated the issue and deployed an index update. Could you please test now?">Index Fix Deployed</button>
+            <button class="canned-btn" data-reply="Thank you for reporting this. Our engineering team is currently investigating.">Under Investigation</button>
+            <button class="canned-btn" data-reply="Could you please provide the exact error logs or request payload?">Request Logs</button>
+            <button class="canned-btn" data-reply="The issue has been verified and fully resolved. Marking this ticket as completed.">Resolution Confirmed</button>
+          </div>
+
+          <!-- Message Reply Box -->
+          <div class="reply-composer-card">
+            <div class="composer-tabs">
+              <button class="composer-tab active" id="tabReplyCustomer">
+                <i data-lucide="message-circle"></i>
+                <span id="replyTabLabel">Reply to Customer (Syncs with Telegram)</span>
+              </button>
+              <button class="composer-tab" id="tabInternalNote">
+                <i data-lucide="lock"></i>
+                <span>Internal Staff Note</span>
+              </button>
+            </div>
+
+            <form id="replyComposerForm">
+              <textarea id="composerInput" class="composer-textarea" rows="3" placeholder="Type your reply here... (Telegram customer will receive it instantly)"></textarea>
+              <div class="composer-footer">
+                <div class="composer-tip">
+                  <i data-lucide="info"></i>
+                  <span id="composerSyncStatus">Telegram customer will be notified instantly</span>
+                </div>
+                <button type="submit" class="btn-primary" id="sendReplyBtn">
+                  <i data-lucide="send"></i>
+                  <span>Send Message</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Right: Ticket Properties Sidebar -->
+        <div class="drawer-properties-sidebar">
+          <div class="prop-group">
+            <label for="ticketStatusSelect">Status:</label>
+            <select id="ticketStatusSelect" class="form-select select-styled">
+              <option value="OPEN">🟡 Open</option>
+              <option value="IN_PROGRESS">🔵 In Progress</option>
+              <option value="WAITING_CUSTOMER">🟠 Waiting on Customer</option>
+              <option value="RESOLVED">🟢 Resolved</option>
+              <option value="CLOSED">⚪ Closed</option>
+            </select>
+          </div>
+
+          <div class="prop-group">
+            <label for="ticketPrioritySelect">Priority:</label>
+            <select id="ticketPrioritySelect" class="form-select select-styled">
+              <option value="URGENT">🔴 Urgent</option>
+              <option value="HIGH">🟠 High</option>
+              <option value="MEDIUM">🔵 Medium</option>
+              <option value="LOW">⚪ Low</option>
+            </select>
+          </div>
+
+          <div class="prop-group">
+            <label for="ticketAgentSelect">Assigned Agent:</label>
+            <select id="ticketAgentSelect" class="form-select select-styled">
+              <option value="Sarah Connor">Sarah Connor</option>
+              <option value="David Vance">David Vance</option>
+              <option value="Elena Rostova">Elena Rostova</option>
+            </select>
+          </div>
+
+          <div class="prop-group">
+            <label for="ticketDeptSelect">Department:</label>
+            <select id="ticketDeptSelect" class="form-select select-styled">
+              <option value="Technical Support">Technical Support</option>
+              <option value="Billing">Billing</option>
+              <option value="Product">Product</option>
+              <option value="General">General</option>
+            </select>
+          </div>
+
+          <div class="prop-divider"></div>
+
+          <!-- Telegram Details -->
+          <div class="ticket-meta-block">
+            <h4><i data-lucide="send"></i> Telegram Connection</h4>
+            <div class="meta-row">
+              <span>Chat ID:</span>
+              <strong id="drawerMetaTelegramId">89123456</strong>
+            </div>
+            <div class="meta-row">
+              <span>Handle:</span>
+              <strong id="drawerMetaTelegramUser">@liam_gallagher_tech</strong>
+            </div>
+          </div>
+
+          <div class="ticket-meta-block mt-4">
+            <h4><i data-lucide="clock"></i> Timeline</h4>
+            <div class="meta-row">
+              <span>Created:</span>
+              <span id="drawerMetaCreated">10 mins ago</span>
+            </div>
+            <div class="meta-row">
+              <span>Updated:</span>
+              <span id="drawerMetaUpdated">Just now</span>
+            </div>
+            <div class="meta-row">
+              <span>Resolved:</span>
+              <span id="drawerMetaResolved">Pending</span>
+            </div>
+          </div>
+
+          <div class="ticket-meta-block mt-4">
+            <h4><i data-lucide="tag"></i> Tags</h4>
+            <div class="tags-cloud" id="drawerTagsCloud">
+              <span class="tag-chip">Production</span>
+              <span class="tag-chip">Webhook</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: CREATE NEW TICKET (ADMIN / AGENT) -->
+  <div class="modal-overlay hidden" id="newTicketModalOverlay">
+    <div class="modal-dialog">
+      <div class="modal-dialog-header">
+        <div class="dash-card-title-group">
+          <i data-lucide="plus-circle" class="text-indigo"></i>
+          <h3>Create New Support Ticket</h3>
+        </div>
+        <button class="btn-icon-only modal-close-btn" id="closeNewTicketModalBtn">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+
+      <form id="adminNewTicketForm">
+        <div class="modal-dialog-body">
+          <div class="form-group mb-3">
+            <label for="newTicketTitle">Ticket Subject / Title:</label>
+            <input type="text" id="newTicketTitle" class="form-input" placeholder="e.g. Database connection pool exhaustion" required>
+          </div>
+
+          <div class="form-row mb-3">
+            <div class="form-group flex-1">
+              <label for="newTicketCustomerName">Customer Name:</label>
+              <input type="text" id="newTicketCustomerName" class="form-input" placeholder="e.g. Liam Gallagher" required>
+            </div>
+            <div class="form-group flex-1">
+              <label for="newTicketCustomerEmail">Customer Email:</label>
+              <input type="email" id="newTicketCustomerEmail" class="form-input" placeholder="customer@company.com" required>
+            </div>
+          </div>
+
+          <div class="form-row mb-3">
+            <div class="form-group flex-1">
+              <label for="newTicketPriority">Priority:</label>
+              <select id="newTicketPriority" class="form-select">
+                <option value="LOW">Low</option>
+                <option value="MEDIUM" selected>Medium</option>
+                <option value="HIGH">High</option>
+                <option value="URGENT">Urgent (P1)</option>
+              </select>
+            </div>
+            <div class="form-group flex-1">
+              <label for="newTicketDept">Department:</label>
+              <select id="newTicketDept" class="form-select">
+                <option value="Technical Support">Technical Support</option>
+                <option value="Billing">Billing & Finance</option>
+                <option value="Product">Product</option>
+                <option value="General">General</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row mb-3">
+            <div class="form-group flex-1">
+              <label for="newTicketChannel">Origin Channel:</label>
+              <select id="newTicketChannel" class="form-select">
+                <option value="WEB_PORTAL">Web Portal</option>
+                <option value="TELEGRAM">Telegram Bot</option>
+              </select>
+            </div>
+            <div class="form-group flex-1">
+              <label for="newTicketAssignee">Assign Agent:</label>
+              <select id="newTicketAssignee" class="form-select">
+                <option value="Sarah Connor">Sarah Connor</option>
+                <option value="David Vance">David Vance</option>
+                <option value="Elena Rostova">Elena Rostova</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group mb-3">
+            <label for="newTicketDescription">Initial Description / Inquiry:</label>
+            <textarea id="newTicketDescription" class="form-textarea" rows="4" placeholder="Detail the customer request or technical diagnosis..." required></textarea>
+          </div>
+        </div>
+
+        <div class="modal-dialog-footer">
+          <button type="button" class="btn-secondary" id="cancelNewTicketBtn">Cancel</button>
+          <button type="submit" class="btn-primary">
+            <i data-lucide="check"></i>
+            <span>Create & Triage</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION CONTAINER -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Scripts -->
+  <script src="js/analytics.js"></script>
+  <script src="js/telegram.js"></script>
+  <script src="js/tickets.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
