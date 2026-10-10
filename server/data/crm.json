@@ -22,7 +22,7 @@
       "role": "Senior DevOps Specialist",
       "email": "david.v@pulsedesk.io",
       "avatar": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80",
-      "activeTickets": 2
+      "activeTickets": 3
     },
     {
       "id": "agent-3",
@@ -77,9 +77,52 @@
       "status": "VIP",
       "totalTickets": 2,
       "createdAt": "2026-08-26T14:31:40.388Z"
+    },
+    {
+      "id": "cust-mv2itpshjgaq",
+      "name": "purvesh",
+      "email": "purvesh@gmail.com",
+      "company": "purv",
+      "telegramUsername": "",
+      "telegramChatId": "",
+      "status": "ACTIVE",
+      "totalTickets": 1,
+      "createdAt": "2026-10-10T15:00:14.417Z"
     }
   ],
   "tickets": [
+    {
+      "id": "PD-1008",
+      "title": "fund",
+      "description": "fund will be not transferred;please resolve it",
+      "status": "OPEN",
+      "priority": "MEDIUM",
+      "department": "Technical Support",
+      "channel": "WEB_PORTAL",
+      "customerId": "cust-mv2itpshjgaq",
+      "customerName": "purvesh",
+      "customerEmail": "purvesh@gmail.com",
+      "telegramChatId": "",
+      "telegramUsername": "",
+      "assignedTo": "David Vance",
+      "tags": [
+        "General"
+      ],
+      "createdAt": "2026-10-10T15:00:14.418Z",
+      "updatedAt": "2026-10-10T15:00:14.418Z",
+      "resolvedAt": null,
+      "messages": [
+        {
+          "id": "msg-1791644414418",
+          "sender": "CUSTOMER",
+          "senderName": "purvesh",
+          "text": "fund will be not transferred;please resolve it",
+          "isInternal": false,
+          "timestamp": "2026-10-10T15:00:14.418Z",
+          "channel": "WEB_PORTAL"
+        }
+      ]
+    },
     {
       "id": "PD-1007",
       "title": "Unable to connect to staging database",
@@ -229,7 +272,7 @@
       "id": "PD-1002",
       "title": "Annual Enterprise Plan Renewal & Invoice VAT Update",
       "description": "We need to update our corporate VAT ID before generating the enterprise annual license renewal invoice.",
-      "status": "OPEN",
+      "status": "IN_PROGRESS",
       "priority": "HIGH",
       "department": "Billing",
       "channel": "TELEGRAM",
@@ -245,7 +288,7 @@
         "VAT"
       ],
       "createdAt": "2026-10-10T10:31:40.388Z",
-      "updatedAt": "2026-10-10T10:31:40.388Z",
+      "updatedAt": "2026-10-10T14:56:03.750Z",
       "resolvedAt": null,
       "messages": [
         {
@@ -256,6 +299,42 @@
           "isInternal": false,
           "timestamp": "2026-10-10T10:31:40.388Z",
           "channel": "TELEGRAM"
+        },
+        {
+          "id": "msg-1791644152616-mfsp",
+          "sender": "AGENT",
+          "senderName": "Elena Rostova",
+          "text": "Hi! We have investigated the issue and deployed an index update. Could you please test now?",
+          "isInternal": false,
+          "timestamp": "2026-10-10T14:55:52.616Z",
+          "channel": "CRM_ADMIN"
+        },
+        {
+          "id": "msg-1791644158887-aazi",
+          "sender": "AGENT",
+          "senderName": "Elena Rostova",
+          "text": "Thank you for reporting this. Our engineering team is currently investigating.",
+          "isInternal": false,
+          "timestamp": "2026-10-10T14:55:58.887Z",
+          "channel": "CRM_ADMIN"
+        },
+        {
+          "id": "msg-1791644159274-25wv",
+          "sender": "AGENT",
+          "senderName": "Elena Rostova",
+          "text": "Thank you for reporting this. Our engineering team is currently investigating.",
+          "isInternal": false,
+          "timestamp": "2026-10-10T14:55:59.274Z",
+          "channel": "CRM_ADMIN"
+        },
+        {
+          "id": "msg-1791644163750-0p2a",
+          "sender": "AGENT",
+          "senderName": "Elena Rostova",
+          "text": "The issue has been verified and fully resolved. Marking this ticket as completed.",
+          "isInternal": false,
+          "timestamp": "2026-10-10T14:56:03.750Z",
+          "channel": "CRM_ADMIN"
         }
       ]
     },
@@ -390,6 +469,38 @@
     }
   ],
   "telegramLogs": [
+    {
+      "id": "tlog-1791644164622",
+      "timestamp": "2026-10-10T14:56:04.623Z",
+      "type": "OUTBOUND_ERROR",
+      "to": "76239102",
+      "text": "💬 <b>Update on Ticket #PD-1002</b>\n<b>From:</b> Elena Rostova\n\nThe issue has been verified and fully resolved. Marking this ticket as completed.\n\n<i>",
+      "status": "Bad Request: chat not found"
+    },
+    {
+      "id": "tlog-1791644160329",
+      "timestamp": "2026-10-10T14:56:00.329Z",
+      "type": "OUTBOUND_ERROR",
+      "to": "76239102",
+      "text": "💬 <b>Update on Ticket #PD-1002</b>\n<b>From:</b> Elena Rostova\n\nThank you for reporting this. Our engineering team is currently investigating.\n\n<i>(Re",
+      "status": "Bad Request: chat not found"
+    },
+    {
+      "id": "tlog-1791644159571",
+      "timestamp": "2026-10-10T14:55:59.571Z",
+      "type": "OUTBOUND_ERROR",
+      "to": "76239102",
+      "text": "💬 <b>Update on Ticket #PD-1002</b>\n<b>From:</b> Elena Rostova\n\nThank you for reporting this. Our engineering team is currently investigating.\n\n<i>(Re",
+      "status": "Bad Request: chat not found"
+    },
+    {
+      "id": "tlog-1791644153355",
+      "timestamp": "2026-10-10T14:55:53.355Z",
+      "type": "OUTBOUND_ERROR",
+      "to": "76239102",
+      "text": "💬 <b>Update on Ticket #PD-1002</b>\n<b>From:</b> Elena Rostova\n\nHi! We have investigated the issue and deployed an index update. Could you please test",
+      "status": "Bad Request: chat not found"
+    },
     {
       "id": "tlog-1791643752541",
       "timestamp": "2026-10-10T14:49:12.541Z",

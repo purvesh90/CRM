@@ -11,31 +11,6 @@ const TelegramModule = {
   },
 
   bindEvents() {
-    // Save Token Form
-    const tokenForm = document.getElementById('telegramTokenForm');
-    if (tokenForm) {
-      tokenForm.addEventListener('submit', (e) => this.handleSaveToken(e));
-    }
-
-    // Toggle Token Visibility
-    const toggleBtn = document.getElementById('toggleTokenVisibility');
-    if (toggleBtn) {
-      toggleBtn.addEventListener('click', () => {
-        const input = document.getElementById('telegramBotTokenInput');
-        if (input.type === 'password') {
-          input.type = 'text';
-        } else {
-          input.type = 'password';
-        }
-      });
-    }
-
-    // Test Connection Button
-    const testBtn = document.getElementById('testTelegramConnBtn');
-    if (testBtn) {
-      testBtn.addEventListener('click', () => this.testConnection());
-    }
-
     // Refresh Logs
     const refreshLogsBtn = document.getElementById('refreshTelegramLogsBtn');
     if (refreshLogsBtn) {
@@ -96,47 +71,7 @@ const TelegramModule = {
     }
   },
 
-  async handleSaveToken(e) {
-    e.preventDefault();
-    const tokenInput = document.getElementById('telegramBotTokenInput');
-    const token = tokenInput ? tokenInput.value.trim() : '';
 
-    App.showToast('Connecting to Telegram Bot API...', 'info');
-
-    try {
-      const res = await fetch('/api/telegram/token', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...(window.AuthModule ? AuthModule.getAuthHeaders() : {}) },
-        body: JSON.stringify({ token })
-      });
-      const data = await res.json();
-
-      if (data.ok) {
-        App.showToast(`✅ Successfully connected to @${data.bot?.username || 'Bot'}!`, 'success');
-        this.loadStatus();
-        this.loadLogs();
-      } else {
-        App.showToast(`❌ Connection failed: ${data.error || 'Invalid token'}`, 'error');
-      }
-    } catch (err) {
-      App.showToast('Network error while saving bot token', 'error');
-    }
-  },
-
-  async testConnection() {
-    App.showToast('Testing Telegram API reachability...', 'info');
-    try {
-      const res = await fetch('/api/telegram/status');
-      const data = await res.json();
-      if (data.status?.connected) {
-        App.showToast(`Bot @${data.status.botInfo.username} is 100% active and polling!`, 'success');
-      } else {
-        App.showToast('No active bot token. In-browser simulator is available!', 'warning');
-      }
-    } catch (e) {
-      App.showToast('Error testing bot connection', 'error');
-    }
-  },
 
   async handleSimulatorSend(e) {
     e.preventDefault();

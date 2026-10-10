@@ -486,67 +486,52 @@
             <p class="panel-subtitle">Direct 2-way live sync between Telegram bot customers and PulseDesk CRM agents.</p>
           </div>
           <div class="panel-header-actions">
-            <button class="btn-secondary" id="testTelegramConnBtn">
-              <i data-lucide="wifi"></i>
-              <span>Test Bot API</span>
-            </button>
+            <div class="telegram-pill-status">
+              <span class="status-dot pulsing"></span>
+              <span>Backend Gateway Online</span>
+            </div>
           </div>
         </div>
 
         <div class="telegram-hub-grid">
-          <!-- Bot Setup & Credentials Card -->
+          <!-- Secure Messaging Gateway Status Card (Credentials managed via .env) -->
           <div class="dash-card">
             <div class="dash-card-header">
               <div class="dash-card-title-group">
-                <i data-lucide="key" class="text-indigo"></i>
-                <h3>Telegram Bot API Configuration</h3>
+                <i data-lucide="shield-check" class="text-emerald"></i>
+                <h3>Encrypted Messaging Gateway</h3>
               </div>
-              <span class="badge-status-pill" id="telegramConfigBadge">Polling Active</span>
+              <span class="badge-status-pill text-success" id="telegramConfigBadge">Gateway Active (Protected)</span>
             </div>
             <div class="dash-card-body">
               <p class="text-muted mb-4">
-                Connect your bot token created via <strong>@BotFather</strong> on Telegram. When users chat with your bot, tickets are created and replies are delivered directly to their Telegram screen.
+                The Telegram Bot Gateway runs securely as an isolated backend service. API credentials, secret tokens, and webhook listeners are managed strictly via server configuration (<code>.env</code>) and are never exposed to the frontend interface.
               </p>
 
-              <form id="telegramTokenForm">
-                <div class="form-group mb-4">
-                  <label for="telegramBotTokenInput">Bot API Token:</label>
-                  <div class="input-with-button">
-                    <input type="password" id="telegramBotTokenInput" class="form-input" placeholder="e.g. 7483921045:AAHk...-9xZa3b" autocomplete="off">
-                    <button type="button" class="btn-secondary btn-icon-only" id="toggleTokenVisibility" title="Toggle Visibility">
-                      <i data-lucide="eye"></i>
-                    </button>
-                  </div>
-                  <small class="form-help">Token is safely stored in local server configuration.</small>
+              <div class="bot-info-card" id="botInfoBox">
+                <div class="bot-info-row">
+                  <span>Gateway Protocol:</span>
+                  <strong class="text-emerald">256-Bit Encrypted Long-Polling</strong>
                 </div>
-
-                <div class="bot-info-card" id="botInfoBox">
-                  <div class="bot-info-row">
-                    <span>Bot Username:</span>
-                    <strong id="botUsernameText">Not set (Simulator Ready)</strong>
-                  </div>
-                  <div class="bot-info-row">
-                    <span>Polling Status:</span>
-                    <strong class="text-success" id="botPollingStatus">Ready</strong>
-                  </div>
+                <div class="bot-info-row">
+                  <span>Backend Dispatcher:</span>
+                  <strong class="text-cyan">Node.js Dedicated Service</strong>
                 </div>
-
-                <div class="form-actions mt-4">
-                  <button type="submit" class="btn-primary" id="saveTelegramTokenBtn">
-                    <i data-lucide="save"></i>
-                    <span>Save & Connect Bot</span>
-                  </button>
+                <div class="bot-info-row">
+                  <span>Sync Architecture:</span>
+                  <strong class="text-success" id="botPollingStatus">2-Way Live Sync Active</strong>
                 </div>
-              </form>
+                <div class="bot-info-row">
+                  <span>Client Token Exposure:</span>
+                  <strong class="text-emerald">Zero (Protected in .env)</strong>
+                </div>
+              </div>
 
-              <!-- How to setup guide -->
               <div class="setup-guide-box mt-6">
-                <h4><i data-lucide="info"></i> Quick 3-Step Telegram Setup:</h4>
-                <ol>
-                  <li>Open Telegram and search for <code>@BotFather</code>.</li>
-                  <li>Send <code>/newbot</code>, choose a name and username ending with <code>bot</code>.</li>
-                  <li>Copy the HTTP API Token, paste it above, and click <strong>Save & Connect</strong>!</li>
-                </ol>
+                <h4><i data-lucide="lock"></i> Server-Side Configuration:</h4>
+                <p class="text-muted text-sm">
+                  To modify or rotate the Telegram bot token, configure <code>TELEGRAM_BOT_TOKEN</code> directly inside your server's <code>.env</code> file. No bot API keys are exposed to the browser.
+                </p>
               </div>
             </div>
           </div>

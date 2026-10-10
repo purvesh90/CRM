@@ -193,10 +193,6 @@ const AuthModule = {
           settingsNavItem.style.pointerEvents = 'auto';
         }
         if (deleteTicketBtn) deleteTicketBtn.style.display = 'inline-flex';
-        if (telegramForm) {
-          const btn = telegramForm.querySelector('button[type="submit"]');
-          if (btn) btn.disabled = false;
-        }
       } else {
         // Agent or Billing Specialist: Restrict admin-only actions
         if (settingsNavItem) {
@@ -209,15 +205,6 @@ const AuthModule = {
         // Hide delete ticket button
         if (deleteTicketBtn) {
           deleteTicketBtn.style.display = 'none';
-        }
-
-        // Lock Telegram credentials editing
-        if (telegramForm) {
-          const btn = telegramForm.querySelector('button[type="submit"]');
-          if (btn) {
-            btn.disabled = true;
-            btn.title = 'Super Admin privilege required to update bot token';
-          }
         }
       }
     }
