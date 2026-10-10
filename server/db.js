@@ -19,6 +19,52 @@ const initialData = {
     autoAssign: true,
     welcomeMessage: '👋 Welcome to PulseDesk Support! Please describe your issue or type /ticket <your question> to create a support ticket.'
   },
+  users: [
+    {
+      id: 'user-admin',
+      name: 'Sarah Connor',
+      email: 'admin@pulsedesk.io',
+      password: 'admin',
+      role: 'SUPER_ADMIN',
+      roleLabel: 'Super Admin',
+      department: 'Executive Operations',
+      avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80',
+      permissions: ['*']
+    },
+    {
+      id: 'user-agent',
+      name: 'David Vance',
+      email: 'agent@pulsedesk.io',
+      password: 'agent',
+      role: 'SUPPORT_AGENT',
+      roleLabel: 'Support Specialist',
+      department: 'Technical Support',
+      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
+      permissions: ['tickets:read', 'tickets:write', 'tickets:reply', 'customers:read', 'analytics:read']
+    },
+    {
+      id: 'user-billing',
+      name: 'Elena Rostova',
+      email: 'billing@pulsedesk.io',
+      password: 'billing',
+      role: 'BILLING_SPECIALIST',
+      roleLabel: 'Billing Specialist',
+      department: 'Billing & Accounting',
+      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+      permissions: ['tickets:read', 'tickets:write', 'tickets:reply', 'customers:read']
+    },
+    {
+      id: 'user-customer',
+      name: 'Liam Gallagher',
+      email: 'liam@oasis-tech.com',
+      password: 'customer',
+      role: 'CUSTOMER',
+      roleLabel: 'Enterprise Client',
+      department: 'Client Portal',
+      avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80',
+      permissions: ['portal:submit', 'portal:track', 'portal:history']
+    }
+  ],
   agents: [
     {
       id: 'agent-1',
@@ -326,7 +372,12 @@ class Database {
     try {
       if (fs.existsSync(DB_FILE)) {
         const raw = fs.readFileSync(DB_FILE, 'utf8');
-        return JSON.parse(raw);
+        const parsed = JSON.parse(raw);
+        if (!parsed.users || parsed.users.length === 0) {
+          parsed.users = initialData.users;
+          this.save(parsed);
+        }
+        return parsed;
       }
     } catch (err) {
       console.error('Error loading CRM database file, resetting to defaults:', err.message);
@@ -341,6 +392,43 @@ class Database {
     } catch (err) {
       console.error('Error saving CRM database:', err.message);
     }
+  }
+
+  getUsers() {
+    return (this.data.users || []).map(u => {
+      const { password, ...safeUser } = u;
+      return safeUser;
+    });
+  }
+
+  getUserById(id) {
+    const user = (this.data.users || []).find(u => u.id === id);
+    if (!user) return null;
+    const { password, ...safeUser } = user;
+    return safeUser;
+  }
+
+  getUserByEmail(email) {
+    const user = (this.data.users || []).find(u => u.email.toLowerCase() === (email || '').toLowerCase());
+    if (!user) return null;
+    const { password, ...safeUser } = user;
+    return safeUser;
+  }
+
+  authenticate({ email, password, userId }) {
+    if (userId) {
+      const user = (this.data.users || []).find(u => u.id === userId);
+      if (user) {
+        const { password: _, ...safeUser } = user;
+        return safeUser;
+      }
+    }
+    if (!email) return null;
+    const user = (this.data.users || []).find(u => u.email.toLowerCase() === email.toLowerCase());
+    if (!user) return null;
+    if (user.password && user.password !== password) return null;
+    const { password: _, ...safeUser } = user;
+    return safeUser;
   }
 
   getSettings() {

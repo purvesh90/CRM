@@ -39,6 +39,27 @@ app.get('/api/events', (req, res) => {
   });
 });
 
+// --- AUTHENTICATION & ROLE MANAGEMENT API ---
+app.post('/api/auth/login', (req, res) => {
+  const { email, password, userId } = req.body;
+  const user = db.authenticate({ email, password, userId });
+  if (!user) {
+    return res.status(401).json({ success: false, error: 'Invalid credentials. Please verify your email and password.' });
+  }
+  const token = 'pd_token_' + Buffer.from(user.id + ':' + Date.now()).toString('base64');
+  res.json({ success: true, user, token });
+});
+
+app.get('/api/auth/me', (req, res) => {
+  const userId = req.headers['x-user-id'] || 'user-admin';
+  const user = db.getUserById(userId) || db.getUsers()[0];
+  res.json({ success: true, user });
+});
+
+app.get('/api/auth/roles', (req, res) => {
+  res.json({ success: true, users: db.getUsers() });
+});
+
 // --- TICKETS API ---
 app.get('/api/tickets', (req, res) => {
   const { status, priority, channel, search } = req.query;
@@ -85,6 +106,10 @@ app.patch('/api/tickets/:id', (req, res) => {
 });
 
 app.delete('/api/tickets/:id', (req, res) => {
+  const userRole = req.headers['x-user-role'];
+  if (userRole && userRole !== 'SUPER_ADMIN') {
+    return res.status(403).json({ success: false, error: 'Access denied. Only Super Admin can delete tickets.' });
+  }
   const deleted = db.deleteTicket(req.params.id);
   if (!deleted) {
     return res.status(404).json({ success: false, error: 'Ticket not found' });
@@ -158,6 +183,10 @@ app.get('/api/settings', (req, res) => {
 });
 
 app.post('/api/settings', (req, res) => {
+  const userRole = req.headers['x-user-role'];
+  if (userRole && userRole !== 'SUPER_ADMIN') {
+    return res.status(403).json({ success: false, error: 'Access denied. Only Super Admin can modify system settings.' });
+  }
   const updated = db.updateSettings(req.body);
   res.json({ success: true, settings: updated });
 });
@@ -168,6 +197,10 @@ app.get('/api/telegram/status', (req, res) => {
 });
 
 app.post('/api/telegram/token', async (req, res) => {
+  const userRole = req.headers['x-user-role'];
+  if (userRole && userRole !== 'SUPER_ADMIN') {
+    return res.status(403).json({ success: false, error: 'Access denied. Only Super Admin can modify Telegram Gateway credentials.' });
+  }
   const { token } = req.body;
   const result = await telegramService.setToken(token);
   res.json(result);

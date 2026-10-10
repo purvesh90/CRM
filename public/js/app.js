@@ -348,9 +348,10 @@ const App = {
     const telegramEnabled = document.getElementById('settingTelegramEnabled').checked;
 
     try {
+      const headers = { 'Content-Type': 'application/json', ...(window.AuthModule ? AuthModule.getAuthHeaders() : {}) };
       const res = await fetch('/api/settings', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({ companyName, welcomeMessage, autoAssign, telegramEnabled })
       });
       const data = await res.json();

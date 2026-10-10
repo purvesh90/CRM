@@ -72,12 +72,61 @@
         <span>New Ticket</span>
       </button>
 
-      <!-- Admin Profile Dropdown -->
-      <div class="user-profile-badge">
-        <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&auto=format&fit=crop&q=80" alt="Admin Avatar" class="profile-avatar">
-        <div class="profile-info">
-          <span class="profile-name">Sarah Connor</span>
-          <span class="profile-role">Super Admin</span>
+      <!-- User Profile Dropdown & Role Indicator -->
+      <div class="user-profile-wrapper">
+        <div class="user-profile-badge" id="userProfileBtn" title="Click to view profile or switch roles">
+          <img id="headerUserAvatar" src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&auto=format&fit=crop&q=80" alt="Avatar" class="profile-avatar">
+          <div class="profile-info">
+            <span class="profile-name" id="headerUserName">Sarah Connor</span>
+            <span class="profile-role role-admin" id="headerUserRole">Super Admin</span>
+          </div>
+          <i data-lucide="chevron-down" class="profile-chevron"></i>
+        </div>
+
+        <div class="user-menu-dropdown hidden" id="userMenuDropdown">
+          <div class="user-menu-header">
+            <img id="dropdownUserAvatar" src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&auto=format&fit=crop&q=80" class="menu-avatar">
+            <div class="menu-user-details">
+              <strong id="dropdownUserName">Sarah Connor</strong>
+              <small id="dropdownUserEmail" class="text-muted">admin@pulsedesk.io</small>
+              <div id="dropdownUserRoleBadge" class="role-pill-badge role-badge-admin">SUPER ADMIN</div>
+            </div>
+          </div>
+          <div class="menu-divider"></div>
+          <div class="menu-section-label">SWITCH ROLE (DEMO ACCESS)</div>
+          <button class="menu-item-btn" data-switch-user="user-admin">
+            <span class="role-icon-box bg-indigo-soft"><i data-lucide="shield"></i></span>
+            <div class="menu-item-text">
+              <strong>Super Admin</strong>
+              <small>Full clearance & system control</small>
+            </div>
+          </button>
+          <button class="menu-item-btn" data-switch-user="user-agent">
+            <span class="role-icon-box bg-cyan-soft"><i data-lucide="headphones"></i></span>
+            <div class="menu-item-text">
+              <strong>Support Specialist</strong>
+              <small>Ticket triage & customer solver</small>
+            </div>
+          </button>
+          <button class="menu-item-btn" data-switch-user="user-billing">
+            <span class="role-icon-box bg-amber-soft"><i data-lucide="credit-card"></i></span>
+            <div class="menu-item-text">
+              <strong>Billing Specialist</strong>
+              <small>Invoices & subscription support</small>
+            </div>
+          </button>
+          <button class="menu-item-btn" data-switch-user="user-customer">
+            <span class="role-icon-box bg-emerald-soft"><i data-lucide="user"></i></span>
+            <div class="menu-item-text">
+              <strong>Customer Portal</strong>
+              <small>Self-service inquiry & tracking</small>
+            </div>
+          </button>
+          <div class="menu-divider"></div>
+          <button class="menu-item-btn text-rose" id="btnSignOut">
+            <i data-lucide="log-out"></i>
+            <span>Sign Out</span>
+          </button>
         </div>
       </div>
     </div>
@@ -1122,10 +1171,75 @@
     </div>
   </div>
 
+  <!-- MODAL: LOGIN & ROLE SELECTOR -->
+  <div class="modal-overlay hidden" id="loginModalOverlay">
+    <div class="login-dialog-card">
+      <div class="login-header">
+        <div class="brand-logo-aura mb-2">
+          <i data-lucide="shield-check" class="brand-icon"></i>
+        </div>
+        <h2 class="login-title">Pulse<span class="brand-accent">Desk</span> Portal</h2>
+        <p class="login-subtitle">Sign in to your account or choose a demonstration role</p>
+      </div>
+
+      <!-- Quick 1-Click Role Switcher -->
+      <div class="login-roles-section">
+        <div class="login-section-title">QUICK DEMO ACCESS (CLICK TO SWITCH ROLE)</div>
+        <div class="login-roles-grid">
+          <button class="login-role-card role-card-admin" data-login-user="user-admin">
+            <div class="role-card-badge">👑 Super Admin</div>
+            <div class="role-card-name">Sarah Connor</div>
+            <div class="role-card-desc">All permissions: tickets, telegram, settings, deletion</div>
+          </button>
+
+          <button class="login-role-card role-card-agent" data-login-user="user-agent">
+            <div class="role-card-badge">🛠️ Support Specialist</div>
+            <div class="role-card-name">David Vance</div>
+            <div class="role-card-desc">Ticket resolution, live thread, customer directory</div>
+          </button>
+
+          <button class="login-role-card role-card-billing" data-login-user="user-billing">
+            <div class="role-card-badge">💳 Billing Specialist</div>
+            <div class="role-card-name">Elena Rostova</div>
+            <div class="role-card-desc">Finance & billing queues, invoice adjustments</div>
+          </button>
+
+          <button class="login-role-card role-card-customer" data-login-user="user-customer">
+            <div class="role-card-badge">👤 Enterprise Client</div>
+            <div class="role-card-name">Liam Gallagher</div>
+            <div class="role-card-desc">Submit requests & track ongoing tickets</div>
+          </button>
+        </div>
+      </div>
+
+      <div class="login-divider-row">
+        <span>OR SIGN IN WITH CREDENTIALS</span>
+      </div>
+
+      <!-- Standard Email/Password Form -->
+      <form id="customLoginForm" class="login-form">
+        <div id="loginErrorMessage" class="login-error-alert hidden"></div>
+        <div class="form-group mb-3">
+          <label for="loginEmail">Email Address:</label>
+          <input type="email" id="loginEmail" class="form-input" placeholder="admin@pulsedesk.io" required>
+        </div>
+        <div class="form-group mb-4">
+          <label for="loginPassword">Password:</label>
+          <input type="password" id="loginPassword" class="form-input" placeholder="••••••••" required>
+        </div>
+        <button type="submit" class="btn-primary w-full btn-login-submit">
+          <i data-lucide="log-in"></i>
+          <span>Sign In to Workspace</span>
+        </button>
+      </form>
+    </div>
+  </div>
+
   <!-- TOAST NOTIFICATION CONTAINER -->
   <div class="toast-container" id="toastContainer"></div>
 
   <!-- Scripts -->
+  <script src="js/auth.js"></script>
   <script src="js/analytics.js"></script>
   <script src="js/telegram.js"></script>
   <script src="js/tickets.js"></script>

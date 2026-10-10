@@ -571,15 +571,22 @@ const TicketsModule = {
 
   async handleDeleteCurrentTicket() {
     if (!this.currentTicketId) return;
+    if (window.AuthModule && AuthModule.currentUser?.role !== 'SUPER_ADMIN') {
+      App.showToast('Access denied: Only Super Admin can delete tickets', 'error');
+      return;
+    }
     if (!confirm(`Are you sure you want to delete Ticket #${this.currentTicketId}?`)) return;
 
     try {
-      const res = await fetch(`/api/tickets/${this.currentTicketId}`, { method: 'DELETE' });
+      const headers = window.AuthModule ? AuthModule.getAuthHeaders() : {};
+      const res = await fetch(`/api/tickets/${this.currentTicketId}`, { method: 'DELETE', headers });
       const data = await res.json();
       if (data.success) {
         App.showToast(`Ticket #${this.currentTicketId} removed`, 'info');
         this.closeDrawer();
         this.loadTickets();
+      } else {
+        App.showToast(data.error || 'Failed to delete ticket', 'error');
       }
     } catch (err) {
       App.showToast('Error deleting ticket', 'error');

@@ -106,7 +106,7 @@ const TelegramModule = {
     try {
       const res = await fetch('/api/telegram/token', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(window.AuthModule ? AuthModule.getAuthHeaders() : {}) },
         body: JSON.stringify({ token })
       });
       const data = await res.json();

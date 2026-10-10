@@ -1,8 +1,8 @@
 {
   "settings": {
     "companyName": "PulseDesk Omnichannel CRM",
-    "telegramBotToken": "",
-    "telegramBotUsername": "",
+    "telegramBotToken": "8606390482:AAFrh1joJxYVJ_0_S6nqDFMyE1rHmJgGvdI",
+    "telegramBotUsername": "mycrm_sales1_bot",
     "telegramEnabled": true,
     "autoAssign": true,
     "welcomeMessage": "👋 Welcome to PulseDesk Support! Please describe your issue or type /ticket <your question> to create a support ticket."
@@ -14,7 +14,7 @@
       "role": "Super Admin",
       "email": "sarah.connor@pulsedesk.io",
       "avatar": "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80",
-      "activeTickets": 2
+      "activeTickets": 3
     },
     {
       "id": "agent-2",
@@ -42,7 +42,7 @@
       "telegramUsername": "liam_gallagher_tech",
       "telegramChatId": "89123456",
       "status": "VIP",
-      "totalTickets": 4,
+      "totalTickets": 5,
       "createdAt": "2026-09-10T14:31:40.387Z"
     },
     {
@@ -81,6 +81,39 @@
   ],
   "tickets": [
     {
+      "id": "PD-1007",
+      "title": "Unable to connect to staging database",
+      "description": "Unable to connect to staging database",
+      "status": "OPEN",
+      "priority": "MEDIUM",
+      "department": "Technical Support",
+      "channel": "TELEGRAM",
+      "customerId": "cust-101",
+      "customerName": "Liam Gallagher",
+      "customerEmail": "liam@oasis-tech.com",
+      "telegramChatId": "89123456",
+      "telegramUsername": "liam_gallagher_tech",
+      "assignedTo": "Sarah Connor",
+      "tags": [
+        "Telegram",
+        "Bot"
+      ],
+      "createdAt": "2026-10-10T14:49:11.469Z",
+      "updatedAt": "2026-10-10T14:49:11.469Z",
+      "resolvedAt": null,
+      "messages": [
+        {
+          "id": "msg-1791643751469",
+          "sender": "CUSTOMER",
+          "senderName": "Liam Gallagher (Telegram)",
+          "text": "Unable to connect to staging database",
+          "isInternal": false,
+          "timestamp": "2026-10-10T14:49:11.469Z",
+          "channel": "TELEGRAM"
+        }
+      ]
+    },
+    {
       "id": "PD-1006",
       "title": "Emergency API Gateway latency spike",
       "description": "Emergency API Gateway latency spike",
@@ -99,7 +132,7 @@
         "Bot"
       ],
       "createdAt": "2026-10-10T14:33:14.661Z",
-      "updatedAt": "2026-10-10T14:33:33.507Z",
+      "updatedAt": "2026-10-10T14:48:48.002Z",
       "resolvedAt": null,
       "messages": [
         {
@@ -119,6 +152,15 @@
           "isInternal": false,
           "timestamp": "2026-10-10T14:33:33.507Z",
           "channel": "CRM_ADMIN"
+        },
+        {
+          "id": "msg-1791643728002-1aey",
+          "sender": "CUSTOMER",
+          "senderName": "Liam Gallagher (Telegram)",
+          "text": "hii",
+          "isInternal": false,
+          "timestamp": "2026-10-10T14:48:48.002Z",
+          "channel": "TELEGRAM"
         }
       ]
     },
@@ -349,6 +391,36 @@
   ],
   "telegramLogs": [
     {
+      "id": "tlog-1791643752541",
+      "timestamp": "2026-10-10T14:49:12.541Z",
+      "type": "OUTBOUND_ERROR",
+      "to": "89123456",
+      "text": "🎉 <b>Ticket Created Successfully!</b>\n\n🎫 <b>Ticket ID:</b> <code>#PD-1007</code>\n📌 <b>Subject:</b> Unable to connect to staging database\n⚡ <b>Assig",
+      "status": "Bad Request: chat not found"
+    },
+    {
+      "id": "tlog-1791643751466",
+      "timestamp": "2026-10-10T14:49:11.466Z",
+      "type": "INBOUND",
+      "from": "@liam_gallagher_tech (89123456)",
+      "text": "/ticket Unable to connect to staging database"
+    },
+    {
+      "id": "tlog-1791643728961",
+      "timestamp": "2026-10-10T14:48:48.961Z",
+      "type": "OUTBOUND_ERROR",
+      "to": "89123456",
+      "text": "✅ <i>Your reply was posted to Ticket #PD-1006. Our agent will respond shortly.</i>",
+      "status": "Bad Request: chat not found"
+    },
+    {
+      "id": "tlog-1791643728000",
+      "timestamp": "2026-10-10T14:48:48.001Z",
+      "type": "INBOUND",
+      "from": "@liam_gallagher_tech (89123456)",
+      "text": "hii"
+    },
+    {
       "id": "tlog-1791642813508",
       "timestamp": "2026-10-10T14:33:33.508Z",
       "type": "OUTBOUND (SIMULATED)",
@@ -384,6 +456,69 @@
       "text": "[Ticket PD-1001] Agent David Vance: Hi Liam, investigating the ingress proxy logs right away...",
       "ticketId": "PD-1001",
       "timestamp": "2026-10-10T13:01:40.388Z"
+    }
+  ],
+  "users": [
+    {
+      "id": "user-admin",
+      "name": "Sarah Connor",
+      "email": "admin@pulsedesk.io",
+      "password": "admin",
+      "role": "SUPER_ADMIN",
+      "roleLabel": "Super Admin",
+      "department": "Executive Operations",
+      "avatar": "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80",
+      "permissions": [
+        "*"
+      ]
+    },
+    {
+      "id": "user-agent",
+      "name": "David Vance",
+      "email": "agent@pulsedesk.io",
+      "password": "agent",
+      "role": "SUPPORT_AGENT",
+      "roleLabel": "Support Specialist",
+      "department": "Technical Support",
+      "avatar": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80",
+      "permissions": [
+        "tickets:read",
+        "tickets:write",
+        "tickets:reply",
+        "customers:read",
+        "analytics:read"
+      ]
+    },
+    {
+      "id": "user-billing",
+      "name": "Elena Rostova",
+      "email": "billing@pulsedesk.io",
+      "password": "billing",
+      "role": "BILLING_SPECIALIST",
+      "roleLabel": "Billing Specialist",
+      "department": "Billing & Accounting",
+      "avatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
+      "permissions": [
+        "tickets:read",
+        "tickets:write",
+        "tickets:reply",
+        "customers:read"
+      ]
+    },
+    {
+      "id": "user-customer",
+      "name": "Liam Gallagher",
+      "email": "liam@oasis-tech.com",
+      "password": "customer",
+      "role": "CUSTOMER",
+      "roleLabel": "Enterprise Client",
+      "department": "Client Portal",
+      "avatar": "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80",
+      "permissions": [
+        "portal:submit",
+        "portal:track",
+        "portal:history"
+      ]
     }
   ]
 }
