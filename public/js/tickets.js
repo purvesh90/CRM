@@ -422,9 +422,9 @@ const TicketsModule = {
     document.getElementById('ticketAgentSelect').value = ticket.assignedTo || 'Sarah Connor';
     document.getElementById('ticketDeptSelect').value = ticket.department || 'Technical Support';
 
-    // Telegram connection metadata
-    document.getElementById('drawerMetaTelegramId').textContent = ticket.telegramChatId || 'Not linked';
-    document.getElementById('drawerMetaTelegramUser').textContent = ticket.telegramUsername ? `@${ticket.telegramUsername}` : 'None';
+    // Telegram connection metadata (masked for security)
+    document.getElementById('drawerMetaTelegramId').textContent = ticket.telegramChatId ? `Encrypted (***${String(ticket.telegramChatId).slice(-4)})` : 'Not linked';
+    document.getElementById('drawerMetaTelegramUser').textContent = ticket.telegramUsername ? 'Protected Account' : 'None';
 
     document.getElementById('drawerMetaCreated').textContent = new Date(ticket.createdAt).toLocaleString();
     document.getElementById('drawerMetaUpdated').textContent = new Date(ticket.updatedAt).toLocaleString();

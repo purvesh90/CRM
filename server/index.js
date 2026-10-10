@@ -142,16 +142,17 @@ app.get('/api/analytics', (req, res) => {
   res.json({ success: true, analytics: db.getAnalytics() });
 });
 
-// --- SETTINGS ---
+// --- SETTINGS (Secured) ---
 app.get('/api/settings', (req, res) => {
   const settings = db.getSettings();
+  const safeSettings = { ...settings };
+  delete safeSettings.telegramBotToken;
+  delete safeSettings.telegramBotUsername;
   res.json({
     success: true,
     settings: {
-      ...settings,
-      telegramTokenMasked: settings.telegramBotToken
-        ? settings.telegramBotToken.slice(0, 8) + '...' + settings.telegramBotToken.slice(-6)
-        : 'Not Configured'
+      ...safeSettings,
+      telegramConfigured: !!settings.telegramBotToken
     }
   });
 });

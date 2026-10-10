@@ -75,19 +75,19 @@ const TelegramModule = {
 
         if (status.connected && status.botInfo) {
           if (badge) {
-            badge.textContent = `Online: @${status.botInfo.username}`;
+            badge.textContent = 'Gateway Active (Protected)';
             badge.className = 'badge-status-pill text-success';
           }
-          if (headerText) headerText.textContent = `@${status.botInfo.username}`;
-          if (userText) userText.innerHTML = `<span class="text-cyan">@${status.botInfo.username} (${status.botInfo.first_name})</span>`;
-          if (pollStatus) pollStatus.textContent = status.isPolling ? 'Live Polling Active' : 'Standby';
+          if (headerText) headerText.textContent = 'Gateway Secured';
+          if (userText) userText.innerHTML = '<span class="text-emerald">Encrypted Bot Channel (Active)</span>';
+          if (pollStatus) pollStatus.textContent = status.isPolling ? 'Live Polling Active (Protected)' : 'Standby';
         } else if (status.tokenConfigured) {
           if (badge) badge.textContent = 'Token set (Testing...)';
           if (headerText) headerText.textContent = 'Connecting...';
         } else {
           if (badge) badge.textContent = 'Simulator Ready';
           if (headerText) headerText.textContent = 'Simulator Mode';
-          if (userText) userText.textContent = 'No Bot Token (Using Simulator)';
+          if (userText) userText.textContent = 'Internal Simulator (No external link exposed)';
           if (pollStatus) pollStatus.textContent = 'Simulator Engine Active';
         }
       }
@@ -244,10 +244,11 @@ const TelegramModule = {
               ? '<span class="priority-badge priority-MEDIUM">OUTBOUND &rarr;</span>'
               : '<span class="priority-badge priority-HIGH">&larr; INBOUND</span>';
 
+            const participant = this.maskParticipant(log.from || log.to || 'Telegram User');
             return `
               <tr>
                 <td>${typeBadge}</td>
-                <td><strong>${log.from || log.to || 'Telegram User'}</strong></td>
+                <td><strong>${this.escapeHtml(participant)}</strong></td>
                 <td><code>${this.escapeHtml(log.text.substring(0, 100))}</code></td>
                 <td><small class="text-muted">${new Date(log.timestamp).toLocaleTimeString()}</small></td>
               </tr>
@@ -260,10 +261,10 @@ const TelegramModule = {
           feed.innerHTML = data.logs.slice(0, 4).map(log => `
             <div class="tg-stream-item">
               <div class="tg-stream-icon">
-                <i data-lucide="send"></i>
+                <i data-lucide="shield-check"></i>
               </div>
               <div class="tg-stream-content">
-                <div class="tg-stream-author">${log.from || ('Sent to ' + log.to)}</div>
+                <div class="tg-stream-author">${this.escapeHtml(this.maskParticipant(log.from || ('Recipient ' + log.to)))}</div>
                 <div class="tg-stream-msg">${this.escapeHtml(log.text.substring(0, 80))}</div>
                 <div class="tg-stream-time">${new Date(log.timestamp).toLocaleTimeString()}</div>
               </div>
@@ -275,6 +276,13 @@ const TelegramModule = {
     } catch (err) {
       console.warn('Failed to load telegram logs:', err);
     }
+  },
+
+  maskParticipant(str) {
+    if (!str) return 'Encrypted Channel';
+    return String(str)
+      .replace(/\(\d+\)/g, '(Protected ID)')
+      .replace(/@([a-zA-Z0-9_]{2})[a-zA-Z0-9_]+/g, '@$1***');
   },
 
   escapeHtml(str) {

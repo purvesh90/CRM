@@ -91,14 +91,7 @@ const App = {
       trackBtn.addEventListener('click', () => this.handleTrackTicketLookup());
     }
 
-    // Customer Portal: Open Telegram Button
-    const portalTgBtn = document.getElementById('portalOpenTelegramBtn');
-    if (portalTgBtn) {
-      portalTgBtn.addEventListener('click', () => {
-        this.switchPortalMode(false);
-        this.switchTab('telegram');
-      });
-    }
+
 
     // Settings Form
     const settingsForm = document.getElementById('systemSettingsForm');
@@ -248,8 +241,8 @@ const App = {
 
     tbody.innerHTML = customers.map(c => {
       const tgDisplay = c.telegramUsername
-        ? `<span class="ticket-channel-icon"><i data-lucide="send"></i> @${c.telegramUsername}</span>`
-        : '<span class="text-muted">Unlinked</span>';
+        ? '<span class="ticket-channel-icon"><i data-lucide="shield-check"></i> Secured Gateway</span>'
+        : '<span class="text-muted">Direct Web</span>';
 
       const statusBadge = c.status === 'VIP'
         ? '<span class="priority-badge priority-URGENT">VIP Tier</span>'

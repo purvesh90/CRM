@@ -48,7 +48,7 @@ class TelegramService {
       this.botInfo = testRes.result;
       db.updateSettings({ telegramBotUsername: testRes.result.username });
       this.startPolling();
-      return { ok: true, bot: testRes.result };
+      return { ok: true, message: 'Bot successfully connected and secured.' };
     } else {
       return { ok: false, error: testRes.description || 'Failed to authenticate token with Telegram API' };
     }
@@ -299,7 +299,7 @@ class TelegramService {
     return {
       connected: !!this.botInfo,
       isPolling: this.isPolling,
-      botInfo: this.botInfo,
+      botInfo: this.botInfo ? { isProtected: true, status: 'CONNECTED' } : null,
       tokenConfigured: !!this.token
     };
   }
