@@ -198,153 +198,117 @@
       
       <!-- TAB 1: EXECUTIVE DASHBOARD -->
       <section class="tab-panel active" id="tab-dashboard">
-        <div class="panel-header">
-          <div>
-            <h1 class="panel-title">Operations Command Center</h1>
-            <p class="panel-subtitle">Real-time support operations, customer inquiries, and Telegram bot streams.</p>
+        <!-- Clean, Spacious Welcome Hero -->
+        <div class="dash-hero-clean">
+          <div class="dash-hero-text">
+            <h1 class="dash-greeting">Welcome back, <span id="welcomeUserNameText" class="text-gradient-primary">Sarah</span> 👋</h1>
+            <p class="dash-subtext">Real-time operational summary across your customer channels and support queues.</p>
           </div>
-          <div class="panel-header-actions">
-            <button class="btn-secondary" id="refreshDashboardBtn">
+          <div class="dash-hero-actions">
+            <button class="btn-secondary" id="refreshDashboardBtn" title="Sync live updates">
               <i data-lucide="refresh-cw"></i>
               <span>Live Sync</span>
             </button>
             <button class="btn-primary" id="dashboardNewTicketBtn">
               <i data-lucide="plus"></i>
-              <span>Quick Ticket</span>
+              <span>New Ticket</span>
             </button>
           </div>
         </div>
 
-        <!-- Welcome Hero Banner -->
-        <div class="welcome-hero-banner mb-6">
-          <div class="welcome-hero-content">
-            <div class="welcome-status-beacon">
-              <span class="beacon-dot pulsing"></span>
-              <span>All Systems Operational • 2-Way Telegram Sync Active</span>
+        <!-- 4 Clean, Spacious Metric KPI Cards -->
+        <div class="kpi-grid-clean">
+          <div class="kpi-card-clean">
+            <div class="kpi-card-top">
+              <span class="kpi-clean-label">Active Tickets</span>
+              <div class="kpi-clean-icon bg-indigo-soft"><i data-lucide="inbox"></i></div>
             </div>
-            <h2 class="welcome-heading">Welcome back, <span id="welcomeUserNameText" class="text-gradient-primary">Sarah</span> 👋</h2>
-            <p class="welcome-subtext">Omnichannel triage engine is monitoring customer conversations with <strong>99.4% SLA compliance</strong> and real-time alerts.</p>
+            <div class="kpi-clean-val" id="kpiActiveTickets">0</div>
+            <div class="kpi-clean-sub text-amber" id="kpiUrgentSubtext">0 Urgent SLA pending</div>
           </div>
-          <div class="welcome-hero-stats">
-            <div class="hero-stat-pill">
-              <span class="hero-stat-val text-emerald">&lt; 14m</span>
-              <span class="hero-stat-lbl">Avg Response</span>
+
+          <div class="kpi-card-clean">
+            <div class="kpi-card-top">
+              <span class="kpi-clean-label">Telegram Channels</span>
+              <div class="kpi-clean-icon bg-cyan-soft"><i data-lucide="send"></i></div>
             </div>
-            <div class="hero-stat-pill">
-              <span class="hero-stat-val text-cyan">99.8%</span>
-              <span class="hero-stat-lbl">Resolution Rate</span>
+            <div class="kpi-clean-val" id="kpiTelegramTickets">0</div>
+            <div class="kpi-clean-sub text-cyan">● 2-Way Bot Connected</div>
+          </div>
+
+          <div class="kpi-card-clean">
+            <div class="kpi-card-top">
+              <span class="kpi-clean-label">Resolved Today</span>
+              <div class="kpi-clean-icon bg-emerald-soft"><i data-lucide="check-circle-2"></i></div>
             </div>
-            <div class="hero-stat-pill">
-              <span class="hero-stat-val text-indigo">4.9 / 5</span>
-              <span class="hero-stat-lbl">CSAT Score</span>
+            <div class="kpi-clean-val" id="kpiResolvedTickets">0</div>
+            <div class="kpi-clean-sub text-emerald" id="kpiAvgHours">Avg. 2.1 hrs resolution</div>
+          </div>
+
+          <div class="kpi-card-clean">
+            <div class="kpi-card-top">
+              <span class="kpi-clean-label">CSAT Satisfaction</span>
+              <div class="kpi-clean-icon bg-amber-soft"><i data-lucide="star"></i></div>
             </div>
+            <div class="kpi-clean-val" id="kpiCsatScore">98.4%</div>
+            <div class="kpi-clean-sub text-success">★ Excellent Customer Score</div>
           </div>
         </div>
 
-        <!-- Metric KPI Cards -->
-        <div class="kpi-grid">
-          <div class="kpi-card glow-cyan">
-            <div class="kpi-icon-wrap bg-cyan-soft">
-              <i data-lucide="inbox" class="kpi-icon text-cyan"></i>
-            </div>
-            <div class="kpi-content">
-              <span class="kpi-label">Active Tickets</span>
-              <div class="kpi-value-row">
-                <span class="kpi-value" id="kpiActiveTickets">0</span>
-                <span class="kpi-trend trend-neutral">In Queue</span>
-              </div>
-              <span class="kpi-subtext" id="kpiUrgentSubtext">0 Urgent SLA pending</span>
-            </div>
-          </div>
-
-          <div class="kpi-card glow-indigo">
-            <div class="kpi-icon-wrap bg-indigo-soft">
-              <i data-lucide="send" class="kpi-icon text-indigo"></i>
-            </div>
-            <div class="kpi-content">
-              <span class="kpi-label">Telegram Channels</span>
-              <div class="kpi-value-row">
-                <span class="kpi-value" id="kpiTelegramTickets">0</span>
-                <span class="kpi-trend trend-up">2-Way Sync</span>
-              </div>
-              <span class="kpi-subtext">Connected bot chats</span>
-            </div>
-          </div>
-
-          <div class="kpi-card glow-emerald">
-            <div class="kpi-icon-wrap bg-emerald-soft">
-              <i data-lucide="check-circle-2" class="kpi-icon text-emerald"></i>
-            </div>
-            <div class="kpi-content">
-              <span class="kpi-label">Resolved Today</span>
-              <div class="kpi-value-row">
-                <span class="kpi-value" id="kpiResolvedTickets">0</span>
-                <span class="kpi-trend trend-up">+18% vs Wk</span>
-              </div>
-              <span class="kpi-subtext" id="kpiAvgHours">Avg. 2.1 hrs resolution</span>
-            </div>
-          </div>
-
-          <div class="kpi-card glow-amber">
-            <div class="kpi-icon-wrap bg-amber-soft">
-              <i data-lucide="star" class="kpi-icon text-amber"></i>
-            </div>
-            <div class="kpi-content">
-              <span class="kpi-label">CSAT Satisfaction</span>
-              <div class="kpi-value-row">
-                <span class="kpi-value" id="kpiCsatScore">98.4%</span>
-                <span class="kpi-trend trend-up">Excellent</span>
-              </div>
-              <span class="kpi-subtext">Based on 142 feedbacks</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Dashboard Two-Column Layout -->
-        <div class="dash-columns-grid">
-          <!-- Recent Urgent & Active Tickets -->
-          <div class="dash-card">
-            <div class="dash-card-header">
-              <div class="dash-card-title-group">
+        <!-- Dashboard Two-Column Section -->
+        <div class="dash-columns-spacious">
+          <!-- Priority Action Queue -->
+          <div class="dash-section-card">
+            <div class="dash-card-header-clean">
+              <div class="dash-card-title-clean">
                 <i data-lucide="alert-triangle" class="text-amber"></i>
-                <h3>High Priority & Urgent Queue</h3>
+                <div>
+                  <h3>Priority Action Queue</h3>
+                  <p>Unresolved high-priority inquiries requiring immediate attention</p>
+                </div>
               </div>
               <button class="btn-text" id="viewAllTicketsFromDash">View All &rarr;</button>
             </div>
-            <div class="dash-card-body" id="urgentTicketsList">
+            <div class="dash-card-body-clean" id="urgentTicketsList">
               <!-- Rendered via JS -->
             </div>
           </div>
 
           <!-- Telegram Bot Real-time Feed -->
-          <div class="dash-card">
-            <div class="dash-card-header">
-              <div class="dash-card-title-group">
-                <i data-lucide="radio" class="text-cyan pulsing-icon"></i>
-                <h3>Live Telegram Stream</h3>
+          <div class="dash-section-card">
+            <div class="dash-card-header-clean">
+              <div class="dash-card-title-clean">
+                <i data-lucide="radio" class="text-cyan"></i>
+                <div>
+                  <h3>Live Telegram Activity</h3>
+                  <p>Real-time customer messages via automated concierge bot</p>
+                </div>
               </div>
-              <button class="btn-text" id="openTelegramSimulatorQuick">Open Simulator &rarr;</button>
+              <button class="btn-text" id="openTelegramSimulatorQuick">Open Hub &rarr;</button>
             </div>
-            <div class="dash-card-body" id="telegramLiveFeed">
+            <div class="dash-card-body-clean" id="telegramLiveFeed">
               <!-- Rendered via JS -->
             </div>
           </div>
         </div>
 
-        <!-- Quick Analytics Preview Chart -->
-        <div class="dash-card mt-6">
-          <div class="dash-card-header">
-            <div class="dash-card-title-group">
+        <!-- Weekly Influx & Resolution Trajectory Chart -->
+        <div class="dash-section-card mt-6">
+          <div class="dash-card-header-clean">
+            <div class="dash-card-title-clean">
               <i data-lucide="trending-up" class="text-indigo"></i>
-              <h3>Weekly Influx & Resolution Trajectory</h3>
+              <div>
+                <h3>Weekly Influx & Resolution Trajectory</h3>
+                <p>Volume trends across Telegram bot chats and Web Portal inquiries</p>
+              </div>
             </div>
-            <div class="chart-legend-row">
+            <div class="chart-legend-clean">
               <span class="legend-dot bg-indigo"></span> New Tickets
               <span class="legend-dot bg-emerald ml-4"></span> Resolved
               <span class="legend-dot bg-cyan ml-4"></span> Telegram Bot
             </div>
           </div>
-          <div class="dash-card-body chart-container-large">
+          <div class="dash-card-body-clean chart-container-large">
             <canvas id="dashboardOverviewChart"></canvas>
           </div>
         </div>
