@@ -14,7 +14,7 @@
       "role": "Super Admin",
       "email": "sarah.connor@pulsedesk.io",
       "avatar": "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80",
-      "activeTickets": 3
+      "activeTickets": 4
     },
     {
       "id": "agent-2",
@@ -30,7 +30,7 @@
       "role": "Billing & Account Specialist",
       "email": "elena.r@pulsedesk.io",
       "avatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
-      "activeTickets": 2
+      "activeTickets": 3
     }
   ],
   "customers": [
@@ -42,7 +42,7 @@
       "telegramUsername": "liam_gallagher_tech",
       "telegramChatId": "89123456",
       "status": "VIP",
-      "totalTickets": 5,
+      "totalTickets": 6,
       "createdAt": "2026-09-10T14:31:40.387Z"
     },
     {
@@ -88,9 +88,86 @@
       "status": "ACTIVE",
       "totalTickets": 1,
       "createdAt": "2026-10-10T15:00:14.417Z"
+    },
+    {
+      "id": "cust-mv2j7ojkt9hp",
+      "name": "Purvesh Sonagra",
+      "email": "Purvesh@telegram.user",
+      "company": "Self-Employed / Independent",
+      "telegramUsername": "Purvesh",
+      "telegramChatId": "5364571732",
+      "status": "ACTIVE",
+      "totalTickets": 1,
+      "createdAt": "2026-10-10T15:11:05.984Z"
     }
   ],
   "tickets": [
+    {
+      "id": "PD-1010",
+      "title": "1009 [fund]",
+      "description": "1009 [fund]",
+      "status": "OPEN",
+      "priority": "MEDIUM",
+      "department": "Technical Support",
+      "channel": "TELEGRAM",
+      "customerId": "cust-mv2j7ojkt9hp",
+      "customerName": "Purvesh Sonagra",
+      "customerEmail": "Purvesh@telegram.user",
+      "telegramChatId": "5364571732",
+      "telegramUsername": "Purvesh",
+      "assignedTo": "Sarah Connor",
+      "tags": [
+        "Telegram",
+        "Bot"
+      ],
+      "createdAt": "2026-10-10T15:11:05.985Z",
+      "updatedAt": "2026-10-10T15:11:05.985Z",
+      "resolvedAt": null,
+      "messages": [
+        {
+          "id": "msg-1791645065985",
+          "sender": "CUSTOMER",
+          "senderName": "Purvesh Sonagra (Telegram)",
+          "text": "1009 [fund]",
+          "isInternal": false,
+          "timestamp": "2026-10-10T15:11:05.985Z",
+          "channel": "TELEGRAM"
+        }
+      ]
+    },
+    {
+      "id": "PD-1009",
+      "title": "Unable to connect to staging database",
+      "description": "Unable to connect to staging database",
+      "status": "OPEN",
+      "priority": "MEDIUM",
+      "department": "Technical Support",
+      "channel": "TELEGRAM",
+      "customerId": "cust-101",
+      "customerName": "Liam Gallagher",
+      "customerEmail": "liam@oasis-tech.com",
+      "telegramChatId": "89123456",
+      "telegramUsername": "liam_gallagher_tech",
+      "assignedTo": "Elena Rostova",
+      "tags": [
+        "Telegram",
+        "Bot"
+      ],
+      "createdAt": "2026-10-10T15:06:06.087Z",
+      "updatedAt": "2026-10-10T15:06:06.087Z",
+      "resolvedAt": null,
+      "messages": [
+        {
+          "id": "msg-1791644766087",
+          "sender": "CUSTOMER",
+          "senderName": "Liam Gallagher (Telegram)",
+          "text": "Unable to connect to staging database",
+          "isInternal": false,
+          "timestamp": "2026-10-10T15:06:06.087Z",
+          "channel": "TELEGRAM"
+        }
+      ]
+    },
     {
       "id": "PD-1008",
       "title": "fund",
@@ -469,6 +546,66 @@
     }
   ],
   "telegramLogs": [
+    {
+      "id": "tlog-1791645066606",
+      "timestamp": "2026-10-10T15:11:06.606Z",
+      "type": "OUTBOUND",
+      "to": "5364571732",
+      "text": "🎉 <b>Ticket Created Successfully!</b>\n\n🎫 <b>Ticket ID:</b> <code>#PD-1010</code>\n📌 <b>Subject:</b> 1009 [fund]\n⚡ <b>Assigned Agent:</b> Sarah Conno",
+      "status": "SENT"
+    },
+    {
+      "id": "tlog-1791645065984",
+      "timestamp": "2026-10-10T15:11:05.984Z",
+      "type": "INBOUND",
+      "from": "@Purvesh (5364571732)",
+      "text": "1009 [fund]"
+    },
+    {
+      "id": "tlog-1791645011551",
+      "timestamp": "2026-10-10T15:10:11.551Z",
+      "type": "OUTBOUND",
+      "to": "5364571732",
+      "text": "🛠 <b>PulseDesk Bot Help:</b>\n\n• <code>/ticket [your problem]</code> : Open a new ticket\n• <code>/status [ticket ID]</code> : Check status of your tic",
+      "status": "SENT"
+    },
+    {
+      "id": "tlog-1791645010878",
+      "timestamp": "2026-10-10T15:10:10.878Z",
+      "type": "INBOUND",
+      "from": "@Purvesh (5364571732)",
+      "text": "/help"
+    },
+    {
+      "id": "tlog-1791644782178",
+      "timestamp": "2026-10-10T15:06:22.178Z",
+      "type": "OUTBOUND_ERROR",
+      "to": "89123456",
+      "text": "📋 <b>Ticket Details: #PD-1001</b>\n\n<b>Subject:</b> Production webhook endpoint 504 gateway timeout\n<b>Status:</b> 🔵 <b>IN PROGRESS</b>\n<b>Priority:<",
+      "status": "Bad Request: chat not found"
+    },
+    {
+      "id": "tlog-1791644781138",
+      "timestamp": "2026-10-10T15:06:21.138Z",
+      "type": "INBOUND",
+      "from": "@liam_gallagher_tech (89123456)",
+      "text": "/status PD-1001"
+    },
+    {
+      "id": "tlog-1791644766862",
+      "timestamp": "2026-10-10T15:06:06.862Z",
+      "type": "OUTBOUND_ERROR",
+      "to": "89123456",
+      "text": "🎉 <b>Ticket Created Successfully!</b>\n\n🎫 <b>Ticket ID:</b> <code>#PD-1009</code>\n📌 <b>Subject:</b> Unable to connect to staging database\n⚡ <b>Assig",
+      "status": "Bad Request: chat not found"
+    },
+    {
+      "id": "tlog-1791644766085",
+      "timestamp": "2026-10-10T15:06:06.085Z",
+      "type": "INBOUND",
+      "from": "@liam_gallagher_tech (89123456)",
+      "text": "/ticket Unable to connect to staging database"
+    },
     {
       "id": "tlog-1791644164622",
       "timestamp": "2026-10-10T14:56:04.623Z",

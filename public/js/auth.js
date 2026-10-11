@@ -156,6 +156,9 @@ const AuthModule = {
       headerRole.className = `profile-role role-badge-${user.role.toLowerCase()}`;
     }
 
+    const welcomeName = document.getElementById('welcomeUserNameText');
+    if (welcomeName) welcomeName.textContent = user.name.split(' ')[0];
+
     // 2. Dropdown Header Profile
     const dropAvatar = document.getElementById('dropdownUserAvatar');
     const dropName = document.getElementById('dropdownUserName');
