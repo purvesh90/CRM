@@ -1048,6 +1048,46 @@
           "from": "CLOSED",
           "to": "OPEN",
           "details": "Status updated from CLOSED to OPEN (Admin Authorized)"
+        },
+        {
+          "id": "aud-1791706623083",
+          "timestamp": "2026-10-11T08:17:03.083Z",
+          "actorName": "System SLA Monitor",
+          "actorRole": "SYSTEM",
+          "action": "AUTO_ESCALATED",
+          "details": "Ticket breached SLA: Resolution SLA breached. Escalated to Lead."
+        },
+        {
+          "id": "aud-1791706691206",
+          "timestamp": "2026-10-11T08:18:11.206Z",
+          "actorName": "System SLA Monitor",
+          "actorRole": "SYSTEM",
+          "action": "AUTO_ESCALATED",
+          "details": "Ticket breached SLA: Resolution SLA breached. Escalated to Lead."
+        },
+        {
+          "id": "aud-1791706691220",
+          "timestamp": "2026-10-11T08:18:11.220Z",
+          "actorName": "System SLA Monitor",
+          "actorRole": "SYSTEM",
+          "action": "AUTO_ESCALATED",
+          "details": "Ticket breached SLA: Resolution SLA breached. Escalated to Lead."
+        },
+        {
+          "id": "aud-1791706691227",
+          "timestamp": "2026-10-11T08:18:11.227Z",
+          "actorName": "System SLA Monitor",
+          "actorRole": "SYSTEM",
+          "action": "AUTO_ESCALATED",
+          "details": "Ticket breached SLA: Resolution SLA breached. Escalated to Lead."
+        },
+        {
+          "id": "aud-1791706722408",
+          "timestamp": "2026-10-11T08:18:42.408Z",
+          "actorName": "System SLA Monitor",
+          "actorRole": "SYSTEM",
+          "action": "AUTO_ESCALATED",
+          "details": "Ticket breached SLA: Resolution SLA breached. Escalated to Lead."
         }
       ],
       "firstResponseAt": "2026-10-11T06:49:12.456Z",
