@@ -18,7 +18,7 @@
 
   <link rel="stylesheet" href="css/styles.css">
 </head>
-<body class="dark-theme">
+<body>
   <!-- Top App Navigation -->
   <header class="app-header">
     <div class="header-left">
@@ -65,6 +65,11 @@
         <i data-lucide="send" class="tg-icon-small"></i>
         <span id="telegramStatusText">Telegram Live</span>
       </div>
+
+      <!-- Theme Switcher Button -->
+      <button class="theme-toggle-btn" id="themeToggleBtn" title="Toggle Light / Dark Mode" aria-label="Toggle Theme">
+        <i data-lucide="moon" id="themeIcon"></i>
+      </button>
 
       <!-- Quick Action: Create Ticket -->
       <button class="btn-primary create-ticket-btn" id="openNewTicketModalBtn">
@@ -355,13 +360,17 @@
           <div class="panel-header-actions">
             <!-- View Mode Switcher -->
             <div class="view-toggle-group">
-              <button class="view-btn active" id="viewKanbanBtn" title="Kanban Board View">
+              <button class="view-btn active" id="viewSplitBtn" title="Split Desk View">
+                <i data-lucide="columns-3"></i>
+                <span>Inbox</span>
+              </button>
+              <button class="view-btn" id="viewKanbanBtn" title="Kanban Board View">
                 <i data-lucide="kanban"></i>
                 <span>Kanban</span>
               </button>
               <button class="view-btn" id="viewListBtn" title="Table / List View">
                 <i data-lucide="list"></i>
-                <span>List</span>
+                <span>Table</span>
               </button>
             </div>
 
@@ -416,8 +425,205 @@
           </button>
         </div>
 
+        <!-- MASTER-DETAIL 3-PANE SPLIT INBOX DESK -->
+        <div class="split-inbox-container" id="splitInboxView">
+          <!-- Left: Tickets Queue List -->
+          <div class="inbox-list-pane">
+            <div class="inbox-pane-header">
+              <div class="inbox-header-title-row">
+                <h3>Support Queue</h3>
+                <span class="inbox-count-pill" id="splitInboxCount">0 tickets</span>
+              </div>
+              <div class="inbox-subfilter-chips">
+                <button class="subfilter-chip active" data-inbox-filter="ALL">All</button>
+                <button class="subfilter-chip" data-inbox-filter="OPEN">Open</button>
+                <button class="subfilter-chip" data-inbox-filter="URGENT">Urgent</button>
+                <button class="subfilter-chip" data-inbox-filter="TELEGRAM">Telegram</button>
+              </div>
+            </div>
+            <div class="inbox-tickets-scroll" id="splitInboxTicketsFeed">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+
+          <!-- Center: Active Conversation Stream & Composer -->
+          <div class="inbox-thread-pane">
+            <div class="thread-empty-state" id="splitThreadEmpty">
+              <i data-lucide="inbox"></i>
+              <h3>Select a ticket from the queue</h3>
+              <p>Choose any customer ticket on the left to start live resolution and Telegram sync.</p>
+            </div>
+
+            <div class="thread-content hidden" id="splitThreadContent">
+              <!-- Thread Header -->
+              <div class="thread-header-bar">
+                <div class="thread-title-area">
+                  <span class="ticket-badge-id" id="splitTicketBadgeId">PD-1001</span>
+                  <h2 class="thread-ticket-title" id="splitTicketTitle">Ticket Title</h2>
+                  <span class="priority-badge" id="splitTicketPriorityBadge">MEDIUM</span>
+                </div>
+                <div class="thread-actions">
+                  <button class="btn-secondary" id="splitQuickResolveBtn" title="Mark Resolved">
+                    <i data-lucide="check-circle-2" class="text-emerald"></i>
+                    <span>Resolve</span>
+                  </button>
+                  <button class="btn-secondary btn-icon-only text-rose" id="splitDeleteTicketBtn" title="Delete Ticket">
+                    <i data-lucide="trash-2"></i>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Customer info strip -->
+              <div class="thread-customer-bar">
+                <div class="thread-cust-profile">
+                  <div class="thread-cust-avatar" id="splitCustAvatar">LG</div>
+                  <div class="thread-cust-meta">
+                    <strong id="splitCustName">Liam Gallagher</strong>
+                    <span id="splitCustEmail">liam@oasis-tech.com</span>
+                  </div>
+                </div>
+                <div class="channel-tag-pill" id="splitChannelTag">
+                  <i data-lucide="send"></i>
+                  <span id="splitChannelText">Telegram Bot</span>
+                </div>
+              </div>
+
+              <!-- Messages Stream -->
+              <div class="thread-messages-stream" id="splitMessagesStream">
+                <!-- Rendered dynamically -->
+              </div>
+
+              <!-- Canned Responses Quick Bar -->
+              <div class="canned-responses-bar">
+                <span class="canned-label"><i data-lucide="zap"></i> Quick:</span>
+                <button class="canned-btn" data-reply="Hi! We have investigated the issue and deployed an index update. Could you please test now?">Fix Deployed</button>
+                <button class="canned-btn" data-reply="Thank you for reaching out. Our engineering team is currently investigating your inquiry.">Investigating</button>
+                <button class="canned-btn" data-reply="Could you please provide the exact error logs or request payload?">Request Logs</button>
+                <button class="canned-btn" data-reply="The issue has been verified and fully resolved. Marking this ticket as completed.">Resolution Confirmed</button>
+              </div>
+
+              <!-- Reply Composer -->
+              <div class="thread-composer-box">
+                <div class="composer-tabs">
+                  <button class="composer-tab active" id="splitTabCustomer">
+                    <i data-lucide="message-circle"></i>
+                    <span id="splitReplyTabLabel">Reply to Customer (Syncs Live)</span>
+                  </button>
+                  <button class="composer-tab" id="splitTabInternal">
+                    <i data-lucide="lock"></i>
+                    <span>Internal Staff Note</span>
+                  </button>
+                </div>
+                <form id="splitComposerForm">
+                  <textarea id="splitComposerInput" class="composer-textarea" rows="2" placeholder="Type your response... (Telegram customer receives it instantly)"></textarea>
+                  <div class="composer-footer">
+                    <div class="composer-tip">
+                      <i data-lucide="info"></i>
+                      <span id="splitSyncNotice">Live 2-way Telegram sync active</span>
+                    </div>
+                    <button type="submit" class="btn-primary" id="splitSendReplyBtn">
+                      <i data-lucide="send"></i>
+                      <span>Send Response</span>
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: Customer 360 & Ticket Properties -->
+          <div class="inbox-details-pane hidden" id="splitDetailsPane">
+            <div class="details-block-title">
+              <i data-lucide="user"></i>
+              <span>Customer 360</span>
+            </div>
+            <div class="cust-card-360">
+              <div class="cust-360-header">
+                <div class="cust-360-avatar" id="split360Avatar">L</div>
+                <div class="cust-360-info">
+                  <strong id="split360Name">Liam Gallagher</strong>
+                  <span id="split360Email">liam@oasis-tech.com</span>
+                </div>
+              </div>
+              <div class="meta-row">
+                <span>Organization:</span>
+                <strong id="split360Company">Oasis Tech</strong>
+              </div>
+              <div class="meta-row">
+                <span>Telegram Chat:</span>
+                <strong id="split360Telegram">Encrypted (Active)</strong>
+              </div>
+            </div>
+
+            <div class="details-block-title mt-4">
+              <i data-lucide="sliders"></i>
+              <span>Ticket Properties</span>
+            </div>
+            <div class="prop-field">
+              <label for="splitStatusSelect">Status:</label>
+              <select id="splitStatusSelect" class="form-select select-styled">
+                <option value="OPEN">🟡 Open</option>
+                <option value="IN_PROGRESS">🔵 In Progress</option>
+                <option value="WAITING_CUSTOMER">🟠 Waiting on Customer</option>
+                <option value="RESOLVED">🟢 Resolved</option>
+                <option value="CLOSED">⚪ Closed</option>
+              </select>
+            </div>
+
+            <div class="prop-field">
+              <label for="splitPrioritySelect">Priority:</label>
+              <select id="splitPrioritySelect" class="form-select select-styled">
+                <option value="URGENT">🔴 Urgent</option>
+                <option value="HIGH">🟠 High</option>
+                <option value="MEDIUM">🔵 Medium</option>
+                <option value="LOW">⚪ Low</option>
+              </select>
+            </div>
+
+            <div class="prop-field">
+              <label for="splitAgentSelect">Assigned Specialist:</label>
+              <select id="splitAgentSelect" class="form-select select-styled">
+                <option value="Sarah Connor">Sarah Connor</option>
+                <option value="David Vance">David Vance</option>
+                <option value="Elena Rostova">Elena Rostova</option>
+              </select>
+            </div>
+
+            <div class="prop-field">
+              <label for="splitDeptSelect">Department:</label>
+              <select id="splitDeptSelect" class="form-select select-styled">
+                <option value="Technical Support">Technical Support</option>
+                <option value="Billing">Billing & Finance</option>
+                <option value="Product">Product</option>
+                <option value="General">General</option>
+              </select>
+            </div>
+
+            <div class="details-block-title mt-4">
+              <i data-lucide="clock"></i>
+              <span>Audit Timeline</span>
+            </div>
+            <div class="meta-row">
+              <span>Created:</span>
+              <strong id="splitTimelineCreated">Just now</strong>
+            </div>
+            <div class="meta-row">
+              <span>Last Active:</span>
+              <strong id="splitTimelineUpdated">Just now</strong>
+            </div>
+
+            <div class="details-block-title mt-4">
+              <i data-lucide="tag"></i>
+              <span>Tags</span>
+            </div>
+            <div class="tags-cloud" id="splitTagsCloud">
+              <span class="tag-chip">Support</span>
+            </div>
+          </div>
+        </div>
+
         <!-- KANBAN VIEW CONTAINER -->
-        <div class="kanban-board-container" id="kanbanBoardView">
+        <div class="kanban-board-container hidden" id="kanbanBoardView">
           <!-- Column 1: OPEN -->
           <div class="kanban-column" data-status="OPEN">
             <div class="kanban-column-header">

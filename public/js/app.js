@@ -4,6 +4,7 @@ const App = {
   isCustomerView: false,
 
   init() {
+    this.initTheme();
     this.bindEvents();
     this.initSSE();
     this.loadCustomers();
@@ -30,6 +31,12 @@ const App = {
   },
 
   bindEvents() {
+    // Theme toggle button
+    const themeBtn = document.getElementById('themeToggleBtn');
+    if (themeBtn) {
+      themeBtn.addEventListener('click', () => this.toggleTheme());
+    }
+
     // Navigation Tabs
     document.querySelectorAll('.sidebar-nav .nav-item').forEach(item => {
       item.addEventListener('click', (e) => {
@@ -417,28 +424,52 @@ const App = {
 
     const trackBox = document.getElementById('portalTrackResult');
     trackBox.classList.remove('hidden');
-    trackBox.innerHTML = `<p class="text-muted">Searching for ticket ${ticketId}...</p>`;
+    trackBox.innerHTML = `<p class="text-muted" style="padding:12px;text-align:center;">Searching for ticket ${ticketId}...</p>`;
 
     try {
       const res = await fetch(`/api/tickets/${ticketId}`);
       const data = await res.json();
       if (data.success && data.ticket) {
         const t = data.ticket;
+        const isResolved = t.status === 'RESOLVED' || t.status === 'CLOSED';
+        const isInProgress = t.status === 'IN_PROGRESS' || t.status === 'WAITING_CUSTOMER';
+
         trackBox.innerHTML = `
-          <div style="background:rgba(15,23,42,0.9);border:1px solid rgba(255,255,255,0.1);padding:16px;border-radius:10px;">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-              <strong style="color:#6366f1;">#${t.id} - ${t.title}</strong>
+          <div style="background:var(--bg-subtle);border:1px solid var(--border);padding:18px;border-radius:var(--radius-md);display:flex;flex-direction:column;gap:12px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <strong style="color:var(--primary);font-size:0.95rem;">#${t.id} - ${this.escapeHtml(t.title)}</strong>
               <span class="priority-badge priority-${t.priority}">${t.status.replace('_', ' ')}</span>
             </div>
-            <p style="font-size:0.8rem;color:#94a3b8;margin-bottom:8px;">Assigned Specialist: <strong>${t.assignedTo}</strong></p>
-            <div style="font-size:0.75rem;color:#64748b;">Last Updated: ${new Date(t.updatedAt).toLocaleString()}</div>
+            
+            <!-- 4-Stage Visual Progress Bar -->
+            <div style="display:flex;align-items:center;justify-content:space-between;position:relative;margin:10px 0;">
+              <div style="position:absolute;top:50%;left:5%;right:5%;height:2px;background:var(--border);z-index:1;transform:translateY(-50%);"></div>
+              <div style="position:absolute;top:50%;left:5%;width:${isResolved ? '90%' : isInProgress ? '50%' : '15%'};height:2px;background:var(--primary);z-index:2;transform:translateY(-50%);transition:all 0.4s ease;"></div>
+              
+              <div style="position:relative;z-index:3;background:var(--bg-card);border:2px solid var(--primary);color:var(--primary);width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.65rem;font-weight:700;">1</div>
+              <div style="position:relative;z-index:3;background:var(--bg-card);border:2px solid ${isInProgress || isResolved ? 'var(--primary)' : 'var(--border)'};color:${isInProgress || isResolved ? 'var(--primary)' : 'var(--text-dim)'};width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.65rem;font-weight:700;">2</div>
+              <div style="position:relative;z-index:3;background:var(--bg-card);border:2px solid ${isInProgress || isResolved ? 'var(--primary)' : 'var(--border)'};color:${isInProgress || isResolved ? 'var(--primary)' : 'var(--text-dim)'};width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.65rem;font-weight:700;">3</div>
+              <div style="position:relative;z-index:3;background:var(--bg-card);border:2px solid ${isResolved ? 'var(--emerald)' : 'var(--border)'};color:${isResolved ? 'var(--emerald)' : 'var(--text-dim)'};width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.65rem;font-weight:700;">4</div>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:0.68rem;color:var(--text-muted);font-weight:600;">
+              <span>Submitted</span>
+              <span>Triage</span>
+              <span>In Progress</span>
+              <span>Resolved</span>
+            </div>
+
+            <div style="background:var(--bg-surface);padding:10px 12px;border-radius:var(--radius-sm);border:1px solid var(--border);display:flex;justify-content:space-between;font-size:0.75rem;">
+              <span>Assigned: <strong>${this.escapeHtml(t.assignedTo)}</strong></span>
+              <span>Updated: <strong>${new Date(t.updatedAt).toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' })}</strong></span>
+            </div>
           </div>
         `;
+        lucide.createIcons();
       } else {
-        trackBox.innerHTML = `<div style="color:#fb7185;padding:10px;">Ticket <strong>${ticketId}</strong> was not found. Please verify the ID.</div>`;
+        trackBox.innerHTML = `<div style="color:var(--rose);padding:12px;background:var(--rose-light);border:1px solid var(--rose-border);border-radius:var(--radius-sm);font-size:0.8rem;">Ticket <strong>${ticketId}</strong> was not found. Please verify the ticket reference.</div>`;
       }
     } catch (err) {
-      trackBox.innerHTML = `<div style="color:#fb7185;">Lookup error.</div>`;
+      trackBox.innerHTML = `<div style="color:var(--rose);padding:10px;">Lookup error.</div>`;
     }
   },
 
@@ -513,6 +544,36 @@ const App = {
     } catch (err) {
       console.warn('SSE not supported or disabled');
     }
+  },
+
+  initTheme() {
+    const savedTheme = localStorage.getItem('pulsedesk_theme') || 'light';
+    this.applyTheme(savedTheme);
+  },
+
+  toggleTheme() {
+    const current = document.documentElement.getAttribute('data-theme') || 'light';
+    const next = current === 'dark' ? 'light' : 'dark';
+    this.applyTheme(next);
+  },
+
+  applyTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    document.body.classList.toggle('dark-theme', theme === 'dark');
+    localStorage.setItem('pulsedesk_theme', theme);
+
+    const icon = document.getElementById('themeIcon');
+    if (icon) {
+      icon.setAttribute('data-lucide', theme === 'dark' ? 'sun' : 'moon');
+      lucide.createIcons();
+    }
+  },
+
+  escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/[&<>"']/g, m => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    })[m]);
   },
 
   showToast(message, type = 'info') {
