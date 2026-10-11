@@ -7,6 +7,7 @@ class TelegramService {
     this.lastUpdateId = 0;
     this.pollingTimer = null;
     this.botInfo = null;
+    this.processedUpdates = new Set(); // For idempotency
 
     if (this.token) {
       this.init();
@@ -91,14 +92,17 @@ class TelegramService {
       if (data.ok && Array.isArray(data.result)) {
         for (const update of data.result) {
           this.lastUpdateId = update.update_id;
+          if (this.processedUpdates.has(update.update_id)) continue; // Idempotency
+          this.processedUpdates.add(update.update_id);
+          if (this.processedUpdates.size > 2000) this.processedUpdates.clear();
+
           if (update.message) {
             await this.handleIncomingMessage(update.message);
           }
         }
       }
     } catch (err) {
-      // Network hiccup or pause
-      // Wait a moment before retry to avoid spinning
+      // Network pause
     }
 
     if (this.isPolling) {
@@ -157,13 +161,31 @@ class TelegramService {
       text
     });
 
+    // 1. One-Time Secure Account Linking: /start pd_link_xxx
+    if (text.startsWith('/start pd_')) {
+      const token = text.replace('/start', '').trim();
+      const linkResult = db.verifyTelegramLinkToken(token, msg.from);
+      if (linkResult.success) {
+        const welcomeVerified = `🎉 <b>Telegram Verified & Linked!</b>\n\n` +
+          `Hello <b>${linkResult.customer.name}</b>, your Telegram account is now permanently connected to <b>PulseDesk CRM</b> (${linkResult.customer.email}).\n\n` +
+          `All your support tickets, updates, and replies will be synchronized automatically in real time!`;
+        await this.sendMessage(chatId, welcomeVerified);
+        return;
+      } else {
+        await this.sendMessage(chatId, `⚠️ <i>${linkResult.error || 'The connection link is invalid or expired. Please generate a new one in your dashboard.'}</i>`);
+        return;
+      }
+    }
+
     // Command: /start
     if (text === '/start') {
       const welcome = `👋 <b>Welcome to PulseDesk Support!</b>\n\nI am your automated CRM support concierge.\n\n` +
-        `• Send any message to automatically open a ticket or update your ongoing request.\n` +
-        `• <code>/ticket &lt;issue details&gt;</code> - Create a new support ticket.\n` +
-        `• <code>/status &lt;PD-1001&gt;</code> - Check status of an existing ticket.\n` +
-        `• <code>/help</code> - Show this menu.\n\n` +
+        `• Send any message to open a ticket or update your ongoing request.\n` +
+        `• <code>/ticket &lt;details&gt;</code> or <code>/new &lt;details&gt;</code> - Create a new support ticket.\n` +
+        `• <code>/status &lt;PD-1001&gt;</code> - Check live status & SLA of a ticket.\n` +
+        `• <code>/rate &lt;PD-1001&gt; &lt;1-5&gt;</code> - Rate CSAT satisfaction.\n` +
+        `• <code>/reopen &lt;PD-1001&gt;</code> - Reopen a resolved ticket.\n` +
+        `• <code>/help</code> - Show command list.\n\n` +
         `Our support engineers are ready to assist you!`;
       await this.sendMessage(chatId, welcome);
       return;
@@ -173,7 +195,9 @@ class TelegramService {
     if (text === '/help') {
       const help = `🛠 <b>PulseDesk Bot Help:</b>\n\n` +
         `• <code>/ticket [your problem]</code> : Open a new ticket\n` +
-        `• <code>/status [ticket ID]</code> : Check status of your ticket\n` +
+        `• <code>/status [ticket ID]</code> : Check status and SLA of your ticket\n` +
+        `• <code>/rate [ticket ID] [1-5]</code> : Rate your support experience (CSAT)\n` +
+        `• <code>/reopen [ticket ID]</code> : Reopen a resolved ticket\n` +
         `• Or simply type your problem message and our CRM will link it to your active ticket!`;
       await this.sendMessage(chatId, help);
       return;
@@ -206,16 +230,59 @@ class TelegramService {
         `<b>Status:</b> ${statusEmoji} <b>${ticket.status.replace('_', ' ')}</b>\n` +
         `<b>Priority:</b> ${ticket.priority}\n` +
         `<b>Assigned Agent:</b> ${ticket.assignedTo}\n` +
+        `<b>SLA Timer:</b> ${ticket.sla?.remainingText || 'Active'}\n` +
         `<b>Last Updated:</b> ${new Date(ticket.updatedAt).toLocaleTimeString()}\n\n` +
         `Reply here to send an update to your agent.`;
       await this.sendMessage(chatId, reply);
       return;
     }
 
-    // Command /ticket <title> OR plain text
+    // Command: /rate <ticketId> <rating>
+    if (text.startsWith('/rate')) {
+      const parts = text.split(' ');
+      const ticketId = parts[1] ? parts[1].trim().toUpperCase() : null;
+      const rating = parseInt(parts[2], 10);
+      if (!ticketId || isNaN(rating) || rating < 1 || rating > 5) {
+        await this.sendMessage(chatId, '⚠️ Usage: <code>/rate &lt;PD-1001&gt; &lt;1 to 5&gt;</code>');
+        return;
+      }
+      const updated = db.rateTicketCSAT(ticketId, rating, 'Rated via Telegram bot');
+      if (updated) {
+        const stars = '⭐'.repeat(rating);
+        await this.sendMessage(chatId, `🎉 <b>Thank you!</b> Your rating of ${stars} (${rating}/5) for ticket <b>#${ticketId}</b> has been recorded.`);
+      } else {
+        await this.sendMessage(chatId, `❌ Ticket <b>#${ticketId}</b> not found.`);
+      }
+      return;
+    }
+
+    // Command: /reopen <ticketId>
+    if (text.startsWith('/reopen')) {
+      const parts = text.split(' ');
+      const ticketId = parts[1] ? parts[1].trim().toUpperCase() : null;
+      if (!ticketId) {
+        await this.sendMessage(chatId, '⚠️ Usage: <code>/reopen &lt;PD-1001&gt;</code>');
+        return;
+      }
+      try {
+        const reopened = db.updateTicket(ticketId, { status: 'REOPENED' }, { name: fullName, role: 'CUSTOMER' });
+        if (reopened) {
+          await this.sendMessage(chatId, `🔄 Ticket <b>#${ticketId}</b> has been reopened. Our agents have been notified!`);
+        } else {
+          await this.sendMessage(chatId, `❌ Ticket <b>#${ticketId}</b> not found.`);
+        }
+      } catch (err) {
+        await this.sendMessage(chatId, `⚠️ Could not reopen ticket: ${err.message}`);
+      }
+      return;
+    }
+
+    // Command: /ticket or /new or plain text
     let issueDescription = text;
     if (text.startsWith('/ticket')) {
       issueDescription = text.replace('/ticket', '').trim();
+    } else if (text.startsWith('/new')) {
+      issueDescription = text.replace('/new', '').trim();
     }
 
     // Check if customer already has an active open ticket from this chat
@@ -224,8 +291,8 @@ class TelegramService {
       (t.status === 'OPEN' || t.status === 'IN_PROGRESS' || t.status === 'WAITING_CUSTOMER')
     );
 
-    // If customer has an active ticket and didn't explicitly run /ticket, append message to it!
-    if (activeTickets.length > 0 && !text.startsWith('/ticket')) {
+    // If customer has an active ticket and didn't explicitly run /new, append message to it!
+    if (activeTickets.length > 0 && !text.startsWith('/new') && !text.startsWith('/ticket')) {
       const activeTicket = activeTickets[0];
       db.addMessageToTicket(activeTicket.id, {
         sender: 'CUSTOMER',
@@ -239,7 +306,7 @@ class TelegramService {
       return;
     }
 
-    // Otherwise, create a new Ticket in the CRM!
+    // Otherwise, create a new Ticket in the CRM with least-loaded agent assignment
     const title = issueDescription.length > 70
       ? issueDescription.substring(0, 67) + '...'
       : issueDescription;
@@ -255,13 +322,14 @@ class TelegramService {
       priority: issueDescription.toLowerCase().includes('urgent') || issueDescription.toLowerCase().includes('emergency') ? 'URGENT' : 'MEDIUM',
       department: issueDescription.toLowerCase().includes('bill') || issueDescription.toLowerCase().includes('invoice') ? 'Billing' : 'Technical Support',
       tags: ['Telegram', 'Bot']
-    });
+    }, { name: fullName, role: 'CUSTOMER' });
 
     const replyMsg = `🎉 <b>Ticket Created Successfully!</b>\n\n` +
       `🎫 <b>Ticket ID:</b> <code>#${newTicket.id}</code>\n` +
       `📌 <b>Subject:</b> ${newTicket.title}\n` +
       `⚡ <b>Assigned Agent:</b> ${newTicket.assignedTo}\n` +
-      `🕒 <b>Status:</b> 🟡 OPEN\n\n` +
+      `🕒 <b>Status:</b> 🟡 OPEN\n` +
+      `⏱️ <b>SLA Target:</b> ${newTicket.sla?.remainingText || 'Active'}\n\n` +
       `Our team has been notified. You can send replies directly here to update this ticket!`;
 
     await this.sendMessage(chatId, replyMsg);
@@ -279,6 +347,25 @@ class TelegramService {
       `<i>(Reply to this message on Telegram to respond back to the agent)</i>`;
 
     return await this.sendMessage(ticket.telegramChatId, formatted);
+  }
+
+  // Push notifications on ticket status change
+  async sendStatusChangeNotification(ticket, newStatus, actorName = 'PulseDesk Team') {
+    if (!ticket.telegramChatId) return;
+
+    if (newStatus === 'RESOLVED') {
+      const msg = `🎉 <b>Your ticket #${ticket.id} has been marked RESOLVED!</b>\n\n` +
+        `Resolved by <b>${actorName}</b>.\n\n` +
+        `How was your support experience? Please rate us from 1 to 5 stars:\n` +
+        `• <code>/rate ${ticket.id} 5</code> ⭐⭐⭐⭐⭐ (Excellent)\n` +
+        `• <code>/rate ${ticket.id} 4</code> ⭐⭐⭐⭐ (Good)\n` +
+        `• <code>/rate ${ticket.id} 3</code> ⭐⭐⭐ (Average)\n\n` +
+        `Need more help? Type <code>/reopen ${ticket.id}</code> anytime!`;
+      await this.sendMessage(ticket.telegramChatId, msg);
+    } else if (newStatus === 'CLOSED') {
+      const msg = `📁 <b>Ticket #${ticket.id} has been archived & closed.</b>\nThank you for choosing PulseDesk!`;
+      await this.sendMessage(ticket.telegramChatId, msg);
+    }
   }
 
   // Simulated inbound message for web testing without live token

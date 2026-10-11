@@ -106,7 +106,7 @@
       "id": "PD-1010",
       "title": "1009 [fund]",
       "description": "1009 [fund]",
-      "status": "OPEN",
+      "status": "CLOSED",
       "priority": "MEDIUM",
       "department": "Billing",
       "channel": "TELEGRAM",
@@ -121,7 +121,7 @@
         "Bot"
       ],
       "createdAt": "2026-10-10T15:11:05.985Z",
-      "updatedAt": "2026-10-11T05:53:00.555Z",
+      "updatedAt": "2026-10-11T06:51:55.232Z",
       "resolvedAt": null,
       "messages": [
         {
@@ -132,8 +132,83 @@
           "isInternal": false,
           "timestamp": "2026-10-10T15:11:05.985Z",
           "channel": "TELEGRAM"
+        },
+        {
+          "id": "msg-1791699657596-m81l",
+          "sender": "CUSTOMER",
+          "senderName": "Purvesh Sonagra (Telegram)",
+          "text": "1008",
+          "isInternal": false,
+          "timestamp": "2026-10-11T06:20:57.596Z",
+          "channel": "TELEGRAM"
+        },
+        {
+          "id": "msg-1791699683022-omup",
+          "sender": "CUSTOMER",
+          "senderName": "Purvesh Sonagra (Telegram)",
+          "text": "1010",
+          "isInternal": false,
+          "timestamp": "2026-10-11T06:21:23.022Z",
+          "channel": "TELEGRAM"
+        },
+        {
+          "id": "msg-1791700677826-xmuq",
+          "sender": "AGENT",
+          "senderName": "Sarah Connor",
+          "text": "Hi! We have investigated the issue and deployed an index update. Could you please test now?",
+          "isInternal": false,
+          "timestamp": "2026-10-11T06:37:57.826Z",
+          "channel": "CRM_ADMIN",
+          "attachments": []
+        },
+        {
+          "id": "msg-1791700692643-f3fi",
+          "sender": "AGENT",
+          "senderName": "Sarah Connor",
+          "text": "Hi! We have investigated the issue and deployed an index update. Could you please test now?",
+          "isInternal": false,
+          "timestamp": "2026-10-11T06:38:12.643Z",
+          "channel": "CRM_ADMIN",
+          "attachments": []
         }
-      ]
+      ],
+      "auditLog": [
+        {
+          "id": "aud-1791700677826-sla",
+          "timestamp": "2026-10-11T06:37:57.826Z",
+          "actorName": "Sarah Connor",
+          "actorRole": "SUPER_ADMIN",
+          "action": "FIRST_RESPONSE_RECORDED",
+          "details": "First public agent response delivered"
+        },
+        {
+          "id": "aud-1791700677826-reply",
+          "timestamp": "2026-10-11T06:37:57.826Z",
+          "actorName": "Sarah Connor",
+          "actorRole": "SUPER_ADMIN",
+          "action": "PUBLIC_REPLY_SENT",
+          "details": "Sent public reply to customer"
+        },
+        {
+          "id": "aud-1791700692643-reply",
+          "timestamp": "2026-10-11T06:38:12.643Z",
+          "actorName": "Sarah Connor",
+          "actorRole": "SUPER_ADMIN",
+          "action": "PUBLIC_REPLY_SENT",
+          "details": "Sent public reply to customer"
+        },
+        {
+          "id": "aud-1791701515232",
+          "timestamp": "2026-10-11T06:51:55.232Z",
+          "actorName": "Sarah Connor",
+          "actorRole": "SUPER_ADMIN",
+          "action": "STATUS_CHANGED",
+          "from": "IN_PROGRESS",
+          "to": "CLOSED",
+          "details": "Status updated from IN_PROGRESS to CLOSED"
+        }
+      ],
+      "firstResponseAt": "2026-10-11T06:37:57.826Z"
     },
     {
       "id": "PD-1009",
@@ -172,7 +247,7 @@
       "id": "PD-1008",
       "title": "fund",
       "description": "fund will be not transferred;please resolve it",
-      "status": "OPEN",
+      "status": "IN_PROGRESS",
       "priority": "MEDIUM",
       "department": "Technical Support",
       "channel": "WEB_PORTAL",
@@ -186,7 +261,7 @@
         "General"
       ],
       "createdAt": "2026-10-10T15:00:14.418Z",
-      "updatedAt": "2026-10-10T15:00:14.418Z",
+      "updatedAt": "2026-10-11T06:37:24.582Z",
       "resolvedAt": null,
       "messages": [
         {
@@ -197,14 +272,43 @@
           "isInternal": false,
           "timestamp": "2026-10-10T15:00:14.418Z",
           "channel": "WEB_PORTAL"
+        },
+        {
+          "id": "msg-1791700634514-2nim",
+          "sender": "AGENT",
+          "senderName": "Sarah Connor",
+          "text": "Hi! We have investigated the issue and deployed an index update. Could you please test now?",
+          "isInternal": false,
+          "timestamp": "2026-10-11T06:37:14.514Z",
+          "channel": "CRM_ADMIN",
+          "attachments": []
         }
-      ]
+      ],
+      "auditLog": [
+        {
+          "id": "aud-1791700634514-sla",
+          "timestamp": "2026-10-11T06:37:14.514Z",
+          "actorName": "Sarah Connor",
+          "actorRole": "SUPER_ADMIN",
+          "action": "FIRST_RESPONSE_RECORDED",
+          "details": "First public agent response delivered"
+        },
+        {
+          "id": "aud-1791700634514-reply",
+          "timestamp": "2026-10-11T06:37:14.514Z",
+          "actorName": "Sarah Connor",
+          "actorRole": "SUPER_ADMIN",
+          "action": "PUBLIC_REPLY_SENT",
+          "details": "Sent public reply to customer"
+        }
+      ],
+      "firstResponseAt": "2026-10-11T06:37:14.514Z"
     },
     {
       "id": "PD-1007",
       "title": "Request credit note & refund for duplicate seat license upgrade",
       "description": "Unable to connect to staging database",
-      "status": "OPEN",
+      "status": "CLOSED",
       "priority": "MEDIUM",
       "department": "Billing",
       "channel": "TELEGRAM",
@@ -220,7 +324,7 @@
         "Credit Note"
       ],
       "createdAt": "2026-10-10T14:49:11.469Z",
-      "updatedAt": "2026-10-10T14:49:11.469Z",
+      "updatedAt": "2026-10-11T06:51:58.714Z",
       "resolvedAt": null,
       "messages": [
         {
@@ -232,13 +336,25 @@
           "timestamp": "2026-10-10T14:49:11.469Z",
           "channel": "TELEGRAM"
         }
+      ],
+      "auditLog": [
+        {
+          "id": "aud-1791701518714",
+          "timestamp": "2026-10-11T06:51:58.714Z",
+          "actorName": "Sarah Connor",
+          "actorRole": "SUPER_ADMIN",
+          "action": "STATUS_CHANGED",
+          "from": "OPEN",
+          "to": "CLOSED",
+          "details": "Status updated from OPEN to CLOSED"
+        }
       ]
     },
     {
       "id": "PD-1006",
       "title": "Stripe invoice recurring payment retry failure for EU tier",
       "description": "Emergency API Gateway latency spike",
-      "status": "IN_PROGRESS",
+      "status": "CLOSED",
       "priority": "URGENT",
       "department": "Billing",
       "channel": "TELEGRAM",
@@ -254,7 +370,7 @@
         "SEPA"
       ],
       "createdAt": "2026-10-10T14:33:14.661Z",
-      "updatedAt": "2026-10-10T14:48:48.002Z",
+      "updatedAt": "2026-10-11T06:51:34.883Z",
       "resolvedAt": null,
       "messages": [
         {
@@ -283,8 +399,241 @@
           "isInternal": false,
           "timestamp": "2026-10-10T14:48:48.002Z",
           "channel": "TELEGRAM"
+        },
+        {
+          "id": "msg-1791701371278-1plm",
+          "sender": "AGENT",
+          "senderName": "Sarah Connor",
+          "text": "The issue has been verified and fully resolved. Marking this ticket as completed.",
+          "isInternal": false,
+          "timestamp": "2026-10-11T06:49:31.278Z",
+          "channel": "CRM_ADMIN",
+          "attachments": []
+        },
+        {
+          "id": "msg-1791701374885-fvcl",
+          "sender": "AGENT",
+          "senderName": "Sarah Connor",
+          "text": "The issue has been verified and fully resolved. Marking this ticket as completed.",
+          "isInternal": false,
+          "timestamp": "2026-10-11T06:49:34.885Z",
+          "channel": "CRM_ADMIN",
+          "attachments": []
         }
-      ]
+      ],
+      "auditLog": [
+        {
+          "id": "aud-1791701371278-sla",
+          "timestamp": "2026-10-11T06:49:31.278Z",
+          "actorName": "Sarah Connor",
+          "actorRole": "SUPER_ADMIN",
+          "action": "FIRST_RESPONSE_RECORDED",
+          "details": "First public agent response delivered"
+        },
+        {
+          "id": "aud-1791701371278-reply",
+          "timestamp": "2026-10-11T06:49:31.278Z",
+          "actorName": "Sarah Connor",
+          "actorRole": "SUPER_ADMIN",
+          "action": "PUBLIC_REPLY_SENT",
+          "details": "Sent public reply to customer"
+        },
+        {
+          "id": "aud-1791701372526",
+          "timestamp": "2026-10-11T06:49:32.526Z",
+          "actorName": "System SLA Monitor",
+          "actorRole": "SYSTEM",
+          "action": "AUTO_ESCALATED",
+          "details": "Ticket breached SLA: Resolution SLA breached. Escalated to Lead."
+        },
+        {
+          "id": "aud-1791701372530",
+          "timestamp": "2026-10-11T06:49:32.530Z",
+          "actorName": "System SLA Monitor",
+          "actorRole": "SYSTEM",
+          "action": "AUTO_ESCALATED",
+          "details": "Ticket breached SLA: Resolution SLA breached. Escalated to Lead."
+        },
+        {
+          "id": "aud-1791701372733",
+          "timestamp": "2026-10-11T06:49:32.733Z",
+          "actorName": "System SLA Monitor",
+          "actorRole": "SYSTEM",
+          "action": "AUTO_ESCALATED",
+          "details": "Ticket breached SLA: Resolution SLA breached. Escalated to Lead."
+        },
+        {
+          "id": "aud-1791701374885-reply",
+          "timestamp": "2026-10-11T06:49:34.885Z",
+          "actorName": "Sarah Connor",
+          "actorRole": "SUPER_ADMIN",
+          "action": "PUBLIC_REPLY_SENT",
+          "details": "Sent public reply to customer"
+        },
+        {
+          "id": "aud-1791701375577",
+          "timestamp": "2026-10-11T06:49:35.577Z",
+          "actorName": "System SLA Monitor",
+          "actorRole": "SYSTEM",
+          "action": "AUTO_ESCALATED",
+          "details": "Ticket breached SLA: Resolution SLA breached. Escalated to Lead."
+        },
+        {
+          "id": "aud-1791701375588",
+          "timestamp": "2026-10-11T06:49:35.588Z",
+          "actorName": "System SLA Monitor",
+          "actorRole": "SYSTEM",
+          "action": "AUTO_ESCALATED",
+          "details": "Ticket breached SLA: Resolution SLA breached. Escalated to Lead."
+        },
+        {
+          "id": "aud-1791701375602",
+          "timestamp": "2026-10-11T06:49:35.602Z",
+          "actorName": "System SLA Monitor",
+          "actorRole": "SYSTEM",
+          "action": "AUTO_ESCALATED",
+          "details": "Ticket breached SLA: Resolution SLA breached. Escalated to Lead."
+        },
+        {
+          "id": "aud-1791701389957",
+          "timestamp": "2026-10-11T06:49:49.957Z",
+          "actorName": "System SLA Monitor",
+          "actorRole": "SYSTEM",
+          "action": "AUTO_ESCALATED",
+          "details": "Ticket breached SLA: Resolution SLA breached. Escalated to Lead."
+        },
+        {
+          "id": "aud-1791701389979",
+          "timestamp": "2026-10-11T06:49:49.979Z",
+          "actorName": "System SLA Monitor",
+          "actorRole": "SYSTEM",
+          "action": "AUTO_ESCALATED",
+          "details": "Ticket breached SLA: Resolution SLA breached. Escalated to Lead."
+        },
+        {
+          "id": "aud-1791701390341",
+          "timestamp": "2026-10-11T06:49:50.341Z",
+          "actorName": "System SLA Monitor",
+          "actorRole": "SYSTEM",
+          "action": "AUTO_ESCALATED",
+          "details": "Ticket breached SLA: Resolution SLA breached. Escalated to Lead."
+        },
+        {
+          "id": "aud-1791701392292",
+          "timestamp": "2026-10-11T06:49:52.292Z",
+          "actorName": "System SLA Monitor",
+          "actorRole": "SYSTEM",
+          "action": "AUTO_ESCALATED",
+          "details": "Ticket breached SLA: Resolution SLA breached. Escalated to Lead."
+        },
+        {
+          "id": "aud-1791701392304",
+          "timestamp": "2026-10-11T06:49:52.304Z",
+          "actorName": "System SLA Monitor",
+          "actorRole": "SYSTEM",
+          "action": "AUTO_ESCALATED",
+          "details": "Ticket breached SLA: Resolution SLA breached. Escalated to Lead."
+        },
+        {
+          "id": "aud-1791701392333",
+          "timestamp": "2026-10-11T06:49:52.333Z",
+          "actorName": "System SLA Monitor",
+          "actorRole": "SYSTEM",
+          "action": "AUTO_ESCALATED",
+          "details": "Ticket breached SLA: Resolution SLA breached. Escalated to Lead."
+        },
+        {
+          "id": "aud-1791701421653",
+          "timestamp": "2026-10-11T06:50:21.653Z",
+          "actorName": "System SLA Monitor",
+          "actorRole": "SYSTEM",
+          "action": "AUTO_ESCALATED",
+          "details": "Ticket breached SLA: Resolution SLA breached. Escalated to Lead."
+        },
+        {
+          "id": "aud-1791701421660",
+          "timestamp": "2026-10-11T06:50:21.660Z",
+          "actorName": "System SLA Monitor",
+          "actorRole": "SYSTEM",
+          "action": "AUTO_ESCALATED",
+          "details": "Ticket breached SLA: Resolution SLA breached. Escalated to Lead."
+        },
+        {
+          "id": "aud-1791701421668",
+          "timestamp": "2026-10-11T06:50:21.668Z",
+          "actorName": "System SLA Monitor",
+          "actorRole": "SYSTEM",
+          "action": "AUTO_ESCALATED",
+          "details": "Ticket breached SLA: Resolution SLA breached. Escalated to Lead."
+        },
+        {
+          "id": "aud-1791701452521",
+          "timestamp": "2026-10-11T06:50:52.521Z",
+          "actorName": "System SLA Monitor",
+          "actorRole": "SYSTEM",
+          "action": "AUTO_ESCALATED",
+          "details": "Ticket breached SLA: Resolution SLA breached. Escalated to Lead."
+        },
+        {
+          "id": "aud-1791701452536",
+          "timestamp": "2026-10-11T06:50:52.536Z",
+          "actorName": "System SLA Monitor",
+          "actorRole": "SYSTEM",
+          "action": "AUTO_ESCALATED",
+          "details": "Ticket breached SLA: Resolution SLA breached. Escalated to Lead."
+        },
+        {
+          "id": "aud-1791701453036",
+          "timestamp": "2026-10-11T06:50:53.036Z",
+          "actorName": "System SLA Monitor",
+          "actorRole": "SYSTEM",
+          "action": "AUTO_ESCALATED",
+          "details": "Ticket breached SLA: Resolution SLA breached. Escalated to Lead."
+        },
+        {
+          "id": "aud-1791701454599",
+          "timestamp": "2026-10-11T06:50:54.599Z",
+          "actorName": "System SLA Monitor",
+          "actorRole": "SYSTEM",
+          "action": "AUTO_ESCALATED",
+          "details": "Ticket breached SLA: Resolution SLA breached. Escalated to Lead."
+        },
+        {
+          "id": "aud-1791701454606",
+          "timestamp": "2026-10-11T06:50:54.606Z",
+          "actorName": "System SLA Monitor",
+          "actorRole": "SYSTEM",
+          "action": "AUTO_ESCALATED",
+          "details": "Ticket breached SLA: Resolution SLA breached. Escalated to Lead."
+        },
+        {
+          "id": "aud-1791701454628",
+          "timestamp": "2026-10-11T06:50:54.628Z",
+          "actorName": "System SLA Monitor",
+          "actorRole": "SYSTEM",
+          "action": "AUTO_ESCALATED",
+          "details": "Ticket breached SLA: Resolution SLA breached. Escalated to Lead."
+        },
+        {
+          "id": "aud-1791701478432",
+          "timestamp": "2026-10-11T06:51:18.432Z",
+          "actorName": "System SLA Monitor",
+          "actorRole": "SYSTEM",
+          "action": "AUTO_ESCALATED",
+          "details": "Ticket breached SLA: Resolution SLA breached. Escalated to Lead."
+        },
+        {
+          "id": "aud-1791701494883",
+          "timestamp": "2026-10-11T06:51:34.883Z",
+          "actorName": "Sarah Connor",
+          "actorRole": "SUPER_ADMIN",
+          "action": "STATUS_CHANGED",
+          "from": "IN_PROGRESS",
+          "to": "CLOSED",
+          "details": "Status updated from IN_PROGRESS to CLOSED"
+        }
+      ],
+      "firstResponseAt": "2026-10-11T06:49:31.278Z"
     },
     {
       "id": "PD-1001",
@@ -351,7 +700,7 @@
       "id": "PD-1002",
       "title": "Annual Enterprise Plan Renewal & Invoice VAT Update",
       "description": "We need to update our corporate VAT ID before generating the enterprise annual license renewal invoice.",
-      "status": "IN_PROGRESS",
+      "status": "CLOSED",
       "priority": "HIGH",
       "department": "Billing",
       "channel": "TELEGRAM",
@@ -367,7 +716,7 @@
         "VAT"
       ],
       "createdAt": "2026-10-10T10:31:40.388Z",
-      "updatedAt": "2026-10-10T14:56:03.750Z",
+      "updatedAt": "2026-10-11T06:51:45.204Z",
       "resolvedAt": null,
       "messages": [
         {
@@ -414,8 +763,271 @@
           "isInternal": false,
           "timestamp": "2026-10-10T14:56:03.750Z",
           "channel": "CRM_ADMIN"
+        },
+        {
+          "id": "msg-1791701352456-umhd",
+          "sender": "AGENT",
+          "senderName": "Sarah Connor",
+          "text": "Thank you for reaching out. Our engineering team is currently investigating your inquiry.",
+          "isInternal": false,
+          "timestamp": "2026-10-11T06:49:12.456Z",
+          "channel": "CRM_ADMIN",
+          "attachments": []
         }
-      ]
+      ],
+      "auditLog": [
+        {
+          "id": "aud-1791701352456-sla",
+          "timestamp": "2026-10-11T06:49:12.456Z",
+          "actorName": "Sarah Connor",
+          "actorRole": "SUPER_ADMIN",
+          "action": "FIRST_RESPONSE_RECORDED",
+          "details": "First public agent response delivered"
+        },
+        {
+          "id": "aud-1791701352456-reply",
+          "timestamp": "2026-10-11T06:49:12.456Z",
+          "actorName": "Sarah Connor",
+          "actorRole": "SUPER_ADMIN",
+          "action": "PUBLIC_REPLY_SENT",
+          "details": "Sent public reply to customer"
+        },
+        {
+          "id": "aud-1791701353279",
+          "timestamp": "2026-10-11T06:49:13.279Z",
+          "actorName": "System SLA Monitor",
+          "actorRole": "SYSTEM",
+          "action": "AUTO_ESCALATED",
+          "details": "Ticket breached SLA: Resolution SLA breached. Escalated to Lead."
+        },
+        {
+          "id": "aud-1791701353284",
+          "timestamp": "2026-10-11T06:49:13.284Z",
+          "actorName": "System SLA Monitor",
+          "actorRole": "SYSTEM",
+          "action": "AUTO_ESCALATED",
+          "details": "Ticket breached SLA: Resolution SLA breached. Escalated to Lead."
+        },
+        {
+          "id": "aud-1791701353574",
+          "timestamp": "2026-10-11T06:49:13.574Z",
+          "actorName": "System SLA Monitor",
+          "actorRole": "SYSTEM",
+          "action": "AUTO_ESCALATED",
+          "details": "Ticket breached SLA: Resolution SLA breached. Escalated to Lead."
+        },
+        {
+          "id": "aud-1791701372526",
+          "timestamp": "2026-10-11T06:49:32.526Z",
+          "actorName": "System SLA Monitor",
+          "actorRole": "SYSTEM",
+          "action": "AUTO_ESCALATED",
+          "details": "Ticket breached SLA: Resolution SLA breached. Escalated to Lead."
+        },
+        {
+          "id": "aud-1791701372530",
+          "timestamp": "2026-10-11T06:49:32.530Z",
+          "actorName": "System SLA Monitor",
+          "actorRole": "SYSTEM",
+          "action": "AUTO_ESCALATED",
+          "details": "Ticket breached SLA: Resolution SLA breached. Escalated to Lead."
+        },
+        {
+          "id": "aud-1791701372733",
+          "timestamp": "2026-10-11T06:49:32.733Z",
+          "actorName": "System SLA Monitor",
+          "actorRole": "SYSTEM",
+          "action": "AUTO_ESCALATED",
+          "details": "Ticket breached SLA: Resolution SLA breached. Escalated to Lead."
+        },
+        {
+          "id": "aud-1791701375577",
+          "timestamp": "2026-10-11T06:49:35.577Z",
+          "actorName": "System SLA Monitor",
+          "actorRole": "SYSTEM",
+          "action": "AUTO_ESCALATED",
+          "details": "Ticket breached SLA: Resolution SLA breached. Escalated to Lead."
+        },
+        {
+          "id": "aud-1791701375588",
+          "timestamp": "2026-10-11T06:49:35.588Z",
+          "actorName": "System SLA Monitor",
+          "actorRole": "SYSTEM",
+          "action": "AUTO_ESCALATED",
+          "details": "Ticket breached SLA: Resolution SLA breached. Escalated to Lead."
+        },
+        {
+          "id": "aud-1791701375602",
+          "timestamp": "2026-10-11T06:49:35.602Z",
+          "actorName": "System SLA Monitor",
+          "actorRole": "SYSTEM",
+          "action": "AUTO_ESCALATED",
+          "details": "Ticket breached SLA: Resolution SLA breached. Escalated to Lead."
+        },
+        {
+          "id": "aud-1791701389957",
+          "timestamp": "2026-10-11T06:49:49.957Z",
+          "actorName": "System SLA Monitor",
+          "actorRole": "SYSTEM",
+          "action": "AUTO_ESCALATED",
+          "details": "Ticket breached SLA: Resolution SLA breached. Escalated to Lead."
+        },
+        {
+          "id": "aud-1791701389979",
+          "timestamp": "2026-10-11T06:49:49.979Z",
+          "actorName": "System SLA Monitor",
+          "actorRole": "SYSTEM",
+          "action": "AUTO_ESCALATED",
+          "details": "Ticket breached SLA: Resolution SLA breached. Escalated to Lead."
+        },
+        {
+          "id": "aud-1791701390341",
+          "timestamp": "2026-10-11T06:49:50.341Z",
+          "actorName": "System SLA Monitor",
+          "actorRole": "SYSTEM",
+          "action": "AUTO_ESCALATED",
+          "details": "Ticket breached SLA: Resolution SLA breached. Escalated to Lead."
+        },
+        {
+          "id": "aud-1791701392292",
+          "timestamp": "2026-10-11T06:49:52.292Z",
+          "actorName": "System SLA Monitor",
+          "actorRole": "SYSTEM",
+          "action": "AUTO_ESCALATED",
+          "details": "Ticket breached SLA: Resolution SLA breached. Escalated to Lead."
+        },
+        {
+          "id": "aud-1791701392304",
+          "timestamp": "2026-10-11T06:49:52.304Z",
+          "actorName": "System SLA Monitor",
+          "actorRole": "SYSTEM",
+          "action": "AUTO_ESCALATED",
+          "details": "Ticket breached SLA: Resolution SLA breached. Escalated to Lead."
+        },
+        {
+          "id": "aud-1791701392333",
+          "timestamp": "2026-10-11T06:49:52.333Z",
+          "actorName": "System SLA Monitor",
+          "actorRole": "SYSTEM",
+          "action": "AUTO_ESCALATED",
+          "details": "Ticket breached SLA: Resolution SLA breached. Escalated to Lead."
+        },
+        {
+          "id": "aud-1791701421653",
+          "timestamp": "2026-10-11T06:50:21.653Z",
+          "actorName": "System SLA Monitor",
+          "actorRole": "SYSTEM",
+          "action": "AUTO_ESCALATED",
+          "details": "Ticket breached SLA: Resolution SLA breached. Escalated to Lead."
+        },
+        {
+          "id": "aud-1791701421660",
+          "timestamp": "2026-10-11T06:50:21.660Z",
+          "actorName": "System SLA Monitor",
+          "actorRole": "SYSTEM",
+          "action": "AUTO_ESCALATED",
+          "details": "Ticket breached SLA: Resolution SLA breached. Escalated to Lead."
+        },
+        {
+          "id": "aud-1791701421668",
+          "timestamp": "2026-10-11T06:50:21.668Z",
+          "actorName": "System SLA Monitor",
+          "actorRole": "SYSTEM",
+          "action": "AUTO_ESCALATED",
+          "details": "Ticket breached SLA: Resolution SLA breached. Escalated to Lead."
+        },
+        {
+          "id": "aud-1791701452521",
+          "timestamp": "2026-10-11T06:50:52.521Z",
+          "actorName": "System SLA Monitor",
+          "actorRole": "SYSTEM",
+          "action": "AUTO_ESCALATED",
+          "details": "Ticket breached SLA: Resolution SLA breached. Escalated to Lead."
+        },
+        {
+          "id": "aud-1791701452536",
+          "timestamp": "2026-10-11T06:50:52.536Z",
+          "actorName": "System SLA Monitor",
+          "actorRole": "SYSTEM",
+          "action": "AUTO_ESCALATED",
+          "details": "Ticket breached SLA: Resolution SLA breached. Escalated to Lead."
+        },
+        {
+          "id": "aud-1791701453036",
+          "timestamp": "2026-10-11T06:50:53.036Z",
+          "actorName": "System SLA Monitor",
+          "actorRole": "SYSTEM",
+          "action": "AUTO_ESCALATED",
+          "details": "Ticket breached SLA: Resolution SLA breached. Escalated to Lead."
+        },
+        {
+          "id": "aud-1791701454599",
+          "timestamp": "2026-10-11T06:50:54.599Z",
+          "actorName": "System SLA Monitor",
+          "actorRole": "SYSTEM",
+          "action": "AUTO_ESCALATED",
+          "details": "Ticket breached SLA: Resolution SLA breached. Escalated to Lead."
+        },
+        {
+          "id": "aud-1791701454606",
+          "timestamp": "2026-10-11T06:50:54.606Z",
+          "actorName": "System SLA Monitor",
+          "actorRole": "SYSTEM",
+          "action": "AUTO_ESCALATED",
+          "details": "Ticket breached SLA: Resolution SLA breached. Escalated to Lead."
+        },
+        {
+          "id": "aud-1791701454628",
+          "timestamp": "2026-10-11T06:50:54.628Z",
+          "actorName": "System SLA Monitor",
+          "actorRole": "SYSTEM",
+          "action": "AUTO_ESCALATED",
+          "details": "Ticket breached SLA: Resolution SLA breached. Escalated to Lead."
+        },
+        {
+          "id": "aud-1791701478432",
+          "timestamp": "2026-10-11T06:51:18.432Z",
+          "actorName": "System SLA Monitor",
+          "actorRole": "SYSTEM",
+          "action": "AUTO_ESCALATED",
+          "details": "Ticket breached SLA: Resolution SLA breached. Escalated to Lead."
+        },
+        {
+          "id": "aud-1791701494896",
+          "timestamp": "2026-10-11T06:51:34.896Z",
+          "actorName": "System SLA Monitor",
+          "actorRole": "SYSTEM",
+          "action": "AUTO_ESCALATED",
+          "details": "Ticket breached SLA: Resolution SLA breached. Escalated to Lead."
+        },
+        {
+          "id": "aud-1791701494910",
+          "timestamp": "2026-10-11T06:51:34.910Z",
+          "actorName": "System SLA Monitor",
+          "actorRole": "SYSTEM",
+          "action": "AUTO_ESCALATED",
+          "details": "Ticket breached SLA: Resolution SLA breached. Escalated to Lead."
+        },
+        {
+          "id": "aud-1791701495076",
+          "timestamp": "2026-10-11T06:51:35.076Z",
+          "actorName": "System SLA Monitor",
+          "actorRole": "SYSTEM",
+          "action": "AUTO_ESCALATED",
+          "details": "Ticket breached SLA: Resolution SLA breached. Escalated to Lead."
+        },
+        {
+          "id": "aud-1791701505204",
+          "timestamp": "2026-10-11T06:51:45.204Z",
+          "actorName": "Sarah Connor",
+          "actorRole": "SUPER_ADMIN",
+          "action": "STATUS_CHANGED",
+          "from": "IN_PROGRESS",
+          "to": "CLOSED",
+          "details": "Status updated from IN_PROGRESS to CLOSED"
+        }
+      ],
+      "firstResponseAt": "2026-10-11T06:49:12.456Z"
     },
     {
       "id": "PD-1003",
@@ -523,7 +1135,7 @@
         "Telemetry"
       ],
       "createdAt": "2026-10-07T14:31:40.388Z",
-      "updatedAt": "2026-10-09T18:31:40.388Z",
+      "updatedAt": "2026-10-11T06:50:53.769Z",
       "resolvedAt": "2026-10-09T16:31:40.388Z",
       "messages": [
         {
@@ -543,11 +1155,228 @@
           "isInternal": false,
           "timestamp": "2026-10-09T16:31:40.388Z",
           "channel": "TELEGRAM"
+        },
+        {
+          "id": "msg-1791701388727-jvtj",
+          "sender": "AGENT",
+          "senderName": "Sarah Connor",
+          "text": "Could you please provide the exact error logs or request payload?",
+          "isInternal": false,
+          "timestamp": "2026-10-11T06:49:48.727Z",
+          "channel": "CRM_ADMIN",
+          "attachments": []
+        },
+        {
+          "id": "msg-1791701391571-20f1",
+          "sender": "AGENT",
+          "senderName": "Sarah Connor",
+          "text": "Could you please provide the exact error logs or request payload?",
+          "isInternal": false,
+          "timestamp": "2026-10-11T06:49:51.571Z",
+          "channel": "CRM_ADMIN",
+          "attachments": []
+        },
+        {
+          "id": "msg-1791701451239-9dno",
+          "sender": "AGENT",
+          "senderName": "Sarah Connor",
+          "text": "Hi! We have investigated the issue and deployed an index update. Could you please test now?",
+          "isInternal": false,
+          "timestamp": "2026-10-11T06:50:51.239Z",
+          "channel": "CRM_ADMIN",
+          "attachments": []
+        },
+        {
+          "id": "msg-1791701453769-9zkc",
+          "sender": "AGENT",
+          "senderName": "Sarah Connor",
+          "text": "Hi! We have investigated the issue and deployed an index update. Could you please test now?",
+          "isInternal": false,
+          "timestamp": "2026-10-11T06:50:53.769Z",
+          "channel": "CRM_ADMIN",
+          "attachments": []
         }
-      ]
+      ],
+      "auditLog": [
+        {
+          "id": "aud-1791701388727-sla",
+          "timestamp": "2026-10-11T06:49:48.727Z",
+          "actorName": "Sarah Connor",
+          "actorRole": "SUPER_ADMIN",
+          "action": "FIRST_RESPONSE_RECORDED",
+          "details": "First public agent response delivered"
+        },
+        {
+          "id": "aud-1791701388727-reply",
+          "timestamp": "2026-10-11T06:49:48.727Z",
+          "actorName": "Sarah Connor",
+          "actorRole": "SUPER_ADMIN",
+          "action": "PUBLIC_REPLY_SENT",
+          "details": "Sent public reply to customer"
+        },
+        {
+          "id": "aud-1791701391571-reply",
+          "timestamp": "2026-10-11T06:49:51.571Z",
+          "actorName": "Sarah Connor",
+          "actorRole": "SUPER_ADMIN",
+          "action": "PUBLIC_REPLY_SENT",
+          "details": "Sent public reply to customer"
+        },
+        {
+          "id": "aud-1791701451240-reply",
+          "timestamp": "2026-10-11T06:50:51.240Z",
+          "actorName": "Sarah Connor",
+          "actorRole": "SUPER_ADMIN",
+          "action": "PUBLIC_REPLY_SENT",
+          "details": "Sent public reply to customer"
+        },
+        {
+          "id": "aud-1791701453769-reply",
+          "timestamp": "2026-10-11T06:50:53.769Z",
+          "actorName": "Sarah Connor",
+          "actorRole": "SUPER_ADMIN",
+          "action": "PUBLIC_REPLY_SENT",
+          "details": "Sent public reply to customer"
+        }
+      ],
+      "firstResponseAt": "2026-10-11T06:49:48.727Z"
     }
   ],
   "telegramLogs": [
+    {
+      "id": "tlog-1791701519557",
+      "timestamp": "2026-10-11T06:51:59.557Z",
+      "type": "OUTBOUND_ERROR",
+      "to": "89123456",
+      "text": "📁 <b>Ticket #PD-1007 has been archived & closed.</b>\nThank you for choosing PulseDesk!",
+      "status": "Bad Request: chat not found"
+    },
+    {
+      "id": "tlog-1791701516278",
+      "timestamp": "2026-10-11T06:51:56.278Z",
+      "type": "OUTBOUND",
+      "to": "5364571732",
+      "text": "📁 <b>Ticket #PD-1010 has been archived & closed.</b>\nThank you for choosing PulseDesk!",
+      "status": "SENT"
+    },
+    {
+      "id": "tlog-1791701506653",
+      "timestamp": "2026-10-11T06:51:46.653Z",
+      "type": "OUTBOUND_ERROR",
+      "to": "76239102",
+      "text": "📁 <b>Ticket #PD-1002 has been archived & closed.</b>\nThank you for choosing PulseDesk!",
+      "status": "Bad Request: chat not found"
+    },
+    {
+      "id": "tlog-1791701496066",
+      "timestamp": "2026-10-11T06:51:36.066Z",
+      "type": "OUTBOUND_ERROR",
+      "to": "89123456",
+      "text": "📁 <b>Ticket #PD-1006 has been archived & closed.</b>\nThank you for choosing PulseDesk!",
+      "status": "Bad Request: chat not found"
+    },
+    {
+      "id": "tlog-1791701454581",
+      "timestamp": "2026-10-11T06:50:54.581Z",
+      "type": "OUTBOUND_ERROR",
+      "to": "89123456",
+      "text": "💬 <b>Update on Ticket #PD-1005</b>\n<b>From:</b> Sarah Connor\n\nHi! We have investigated the issue and deployed an index update. Could you please test ",
+      "status": "Bad Request: chat not found"
+    },
+    {
+      "id": "tlog-1791701452498",
+      "timestamp": "2026-10-11T06:50:52.498Z",
+      "type": "OUTBOUND_ERROR",
+      "to": "89123456",
+      "text": "💬 <b>Update on Ticket #PD-1005</b>\n<b>From:</b> Sarah Connor\n\nHi! We have investigated the issue and deployed an index update. Could you please test ",
+      "status": "Bad Request: chat not found"
+    },
+    {
+      "id": "tlog-1791701392277",
+      "timestamp": "2026-10-11T06:49:52.277Z",
+      "type": "OUTBOUND_ERROR",
+      "to": "89123456",
+      "text": "💬 <b>Update on Ticket #PD-1005</b>\n<b>From:</b> Sarah Connor\n\nCould you please provide the exact error logs or request payload?\n\n<i>(Reply to this me",
+      "status": "Bad Request: chat not found"
+    },
+    {
+      "id": "tlog-1791701389929",
+      "timestamp": "2026-10-11T06:49:49.929Z",
+      "type": "OUTBOUND_ERROR",
+      "to": "89123456",
+      "text": "💬 <b>Update on Ticket #PD-1005</b>\n<b>From:</b> Sarah Connor\n\nCould you please provide the exact error logs or request payload?\n\n<i>(Reply to this me",
+      "status": "Bad Request: chat not found"
+    },
+    {
+      "id": "tlog-1791701375564",
+      "timestamp": "2026-10-11T06:49:35.564Z",
+      "type": "OUTBOUND_ERROR",
+      "to": "89123456",
+      "text": "💬 <b>Update on Ticket #PD-1006</b>\n<b>From:</b> Sarah Connor\n\nThe issue has been verified and fully resolved. Marking this ticket as completed.\n\n<i>(",
+      "status": "Bad Request: chat not found"
+    },
+    {
+      "id": "tlog-1791701372515",
+      "timestamp": "2026-10-11T06:49:32.515Z",
+      "type": "OUTBOUND_ERROR",
+      "to": "89123456",
+      "text": "💬 <b>Update on Ticket #PD-1006</b>\n<b>From:</b> Sarah Connor\n\nThe issue has been verified and fully resolved. Marking this ticket as completed.\n\n<i>(",
+      "status": "Bad Request: chat not found"
+    },
+    {
+      "id": "tlog-1791701353265",
+      "timestamp": "2026-10-11T06:49:13.265Z",
+      "type": "OUTBOUND_ERROR",
+      "to": "76239102",
+      "text": "💬 <b>Update on Ticket #PD-1002</b>\n<b>From:</b> Sarah Connor\n\nThank you for reaching out. Our engineering team is currently investigating your inquir",
+      "status": "Bad Request: chat not found"
+    },
+    {
+      "id": "tlog-1791700694012",
+      "timestamp": "2026-10-11T06:38:14.012Z",
+      "type": "OUTBOUND",
+      "to": "5364571732",
+      "text": "💬 <b>Update on Ticket #PD-1010</b>\n<b>From:</b> Sarah Connor\n\nHi! We have investigated the issue and deployed an index update. Could you please test ",
+      "status": "SENT"
+    },
+    {
+      "id": "tlog-1791700678798",
+      "timestamp": "2026-10-11T06:37:58.798Z",
+      "type": "OUTBOUND",
+      "to": "5364571732",
+      "text": "💬 <b>Update on Ticket #PD-1010</b>\n<b>From:</b> Sarah Connor\n\nHi! We have investigated the issue and deployed an index update. Could you please test ",
+      "status": "SENT"
+    },
+    {
+      "id": "tlog-1791699684065",
+      "timestamp": "2026-10-11T06:21:24.065Z",
+      "type": "OUTBOUND",
+      "to": "5364571732",
+      "text": "✅ <i>Your reply was posted to Ticket #PD-1010. Our agent will respond shortly.</i>",
+      "status": "SENT"
+    },
+    {
+      "id": "tlog-1791699683021",
+      "timestamp": "2026-10-11T06:21:23.021Z",
+      "type": "INBOUND",
+      "from": "@Purvesh (5364571732)",
+      "text": "1010"
+    },
+    {
+      "id": "tlog-1791699658353",
+      "timestamp": "2026-10-11T06:20:58.353Z",
+      "type": "OUTBOUND",
+      "to": "5364571732",
+      "text": "✅ <i>Your reply was posted to Ticket #PD-1010. Our agent will respond shortly.</i>",
+      "status": "SENT"
+    },
+    {
+      "id": "tlog-1791699657593",
+      "timestamp": "2026-10-11T06:20:57.593Z",
+      "type": "INBOUND",
+      "from": "@Purvesh (5364571732)",
+      "text": "1008"
+    },
     {
       "id": "tlog-1791645066606",
       "timestamp": "2026-10-10T15:11:06.606Z",
@@ -770,5 +1599,17 @@
         "portal:history"
       ]
     }
-  ]
+  ],
+  "telegramLinkTokens": {
+    "pd_id68etw8mv3gb159": {
+      "customerId": "cust-mv2itpshjgaq",
+      "createdAt": "2026-10-11T06:37:29.613Z",
+      "expiresAt": "2026-10-12T06:37:29.613Z"
+    },
+    "pd_dn4jhc25mv3gbjis": {
+      "customerId": "cust-mv2j7ojkt9hp",
+      "createdAt": "2026-10-11T06:37:53.428Z",
+      "expiresAt": "2026-10-12T06:37:53.428Z"
+    }
+  }
 }

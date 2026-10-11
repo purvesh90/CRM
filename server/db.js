@@ -9,6 +9,89 @@ if (!fs.existsSync(DATA_DIR)) {
   fs.mkdirSync(DATA_DIR, { recursive: true });
 }
 
+// ------------------------------------------------------------
+// 1. FORMAL RBAC PERMISSIONS TABLE
+// ------------------------------------------------------------
+const PERMISSIONS = {
+  SUPER_ADMIN: [
+    'ticket.view_all',
+    'ticket.create',
+    'ticket.assign',
+    'ticket.change_status',
+    'ticket.open',
+    'ticket.resolve',
+    'ticket.close',
+    'ticket.reopen',
+    'ticket.override_status',
+    'ticket.reply',
+    'ticket.internal_note',
+    'ticket.soft_delete',
+    'ticket.escalate',
+    'customer.view',
+    'customer.manage',
+    'analytics.view_team',
+    'analytics.view_own',
+    'settings.manage'
+  ],
+  SUPPORT_AGENT: [
+    'ticket.view_team',
+    'ticket.create',
+    'ticket.assign',
+    'ticket.change_status',
+    'ticket.open',
+    'ticket.resolve',
+    'ticket.close',
+    'ticket.reopen',
+    'ticket.reply',
+    'ticket.internal_note',
+    'ticket.escalate',
+    'customer.view',
+    'analytics.view_own'
+  ],
+  BILLING_SPECIALIST: [
+    'ticket.view_team',
+    'ticket.create',
+    'ticket.change_status',
+    'ticket.open',
+    'ticket.resolve',
+    'ticket.close',
+    'ticket.reopen',
+    'ticket.reply',
+    'ticket.internal_note',
+    'customer.view',
+    'analytics.view_own'
+  ],
+  CUSTOMER: [
+    'ticket.view_own',
+    'ticket.create',
+    'ticket.reply',
+    'ticket.rate_csat'
+  ]
+};
+
+// ------------------------------------------------------------
+// 2. TICKET LIFECYCLE STATE MACHINE
+// ------------------------------------------------------------
+const STATE_TRANSITIONS = {
+  NEW: ['OPEN', 'IN_PROGRESS', 'WAITING_CUSTOMER', 'RESOLVED', 'CLOSED'],
+  OPEN: ['IN_PROGRESS', 'WAITING_CUSTOMER', 'RESOLVED', 'CLOSED'],
+  IN_PROGRESS: ['OPEN', 'WAITING_CUSTOMER', 'RESOLVED', 'CLOSED'],
+  WAITING_CUSTOMER: ['OPEN', 'IN_PROGRESS', 'RESOLVED', 'CLOSED'],
+  RESOLVED: ['OPEN', 'IN_PROGRESS', 'WAITING_CUSTOMER', 'CLOSED', 'REOPENED'],
+  CLOSED: ['OPEN', 'IN_PROGRESS', 'RESOLVED', 'REOPENED'],
+  REOPENED: ['OPEN', 'IN_PROGRESS', 'WAITING_CUSTOMER', 'RESOLVED', 'CLOSED']
+};
+
+// ------------------------------------------------------------
+// 3. SLA CONFIGURATION (Hours)
+// ------------------------------------------------------------
+const SLA_CONFIG = {
+  URGENT: { firstResponseHours: 0.5, resolutionHours: 4 },
+  HIGH: { firstResponseHours: 2, resolutionHours: 8 },
+  MEDIUM: { firstResponseHours: 4, resolutionHours: 24 },
+  LOW: { firstResponseHours: 8, resolutionHours: 48 }
+};
+
 // Initial Seed Data
 const initialData = {
   settings: {
@@ -19,6 +102,7 @@ const initialData = {
     autoAssign: true,
     welcomeMessage: '👋 Welcome to PulseDesk Support! Please describe your issue or type /ticket <your question> to create a support ticket.'
   },
+  telegramLinkTokens: {}, // token -> { customerId, createdAt, expiresAt }
   users: [
     {
       id: 'user-admin',
@@ -29,7 +113,7 @@ const initialData = {
       roleLabel: 'Super Admin',
       department: 'Executive Operations',
       avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80',
-      permissions: ['*']
+      permissions: PERMISSIONS.SUPER_ADMIN
     },
     {
       id: 'user-agent',
@@ -40,7 +124,7 @@ const initialData = {
       roleLabel: 'Support Specialist',
       department: 'Technical Support',
       avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
-      permissions: ['tickets:read', 'tickets:write', 'tickets:reply', 'customers:read', 'analytics:read']
+      permissions: PERMISSIONS.SUPPORT_AGENT
     },
     {
       id: 'user-billing',
@@ -51,7 +135,7 @@ const initialData = {
       roleLabel: 'Billing Specialist',
       department: 'Billing & Accounting',
       avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
-      permissions: ['tickets:read', 'tickets:write', 'tickets:reply', 'customers:read']
+      permissions: PERMISSIONS.BILLING_SPECIALIST
     },
     {
       id: 'user-customer',
@@ -62,7 +146,7 @@ const initialData = {
       roleLabel: 'Enterprise Client',
       department: 'Client Portal',
       avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80',
-      permissions: ['portal:submit', 'portal:track', 'portal:history']
+      permissions: PERMISSIONS.CUSTOMER
     }
   ],
   agents: [
@@ -88,7 +172,7 @@ const initialData = {
       role: 'Billing & Account Specialist',
       email: 'elena.r@pulsedesk.io',
       avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
-      activeTickets: 1
+      activeTickets: 2
     }
   ],
   customers: [
@@ -155,7 +239,41 @@ const initialData = {
       tags: ['Production', 'Webhook', 'Timeout'],
       createdAt: new Date(Date.now() - 2 * 3600000).toISOString(),
       updatedAt: new Date(Date.now() - 25 * 60000).toISOString(),
+      firstResponseAt: new Date(Date.now() - 90 * 60000).toISOString(),
       resolvedAt: null,
+      deletedAt: null,
+      csatRating: null,
+      csatComment: null,
+      isEscalated: false,
+      attachments: [],
+      auditLog: [
+        {
+          id: 'aud-1',
+          timestamp: new Date(Date.now() - 2 * 3600000).toISOString(),
+          actorName: 'Liam Gallagher',
+          actorRole: 'CUSTOMER',
+          action: 'TICKET_CREATED',
+          details: 'Ticket created via Telegram Bot'
+        },
+        {
+          id: 'aud-2',
+          timestamp: new Date(Date.now() - 110 * 60000).toISOString(),
+          actorName: 'System (Auto-Assign)',
+          actorRole: 'SYSTEM',
+          action: 'AUTO_ASSIGNED',
+          details: 'Assigned to David Vance (least-loaded DevOps specialist)'
+        },
+        {
+          id: 'aud-3',
+          timestamp: new Date(Date.now() - 90 * 60000).toISOString(),
+          actorName: 'David Vance',
+          actorRole: 'SUPPORT_AGENT',
+          action: 'STATUS_CHANGED',
+          from: 'OPEN',
+          to: 'IN_PROGRESS',
+          details: 'First response sent. Investigating ingress proxy.'
+        }
+      ],
       messages: [
         {
           id: 'msg-1',
@@ -212,7 +330,31 @@ const initialData = {
       tags: ['Billing', 'Enterprise', 'VAT'],
       createdAt: new Date(Date.now() - 4 * 3600000).toISOString(),
       updatedAt: new Date(Date.now() - 4 * 3600000).toISOString(),
+      firstResponseAt: null,
       resolvedAt: null,
+      deletedAt: null,
+      csatRating: null,
+      csatComment: null,
+      isEscalated: false,
+      attachments: [],
+      auditLog: [
+        {
+          id: 'aud-10',
+          timestamp: new Date(Date.now() - 4 * 3600000).toISOString(),
+          actorName: 'Sophia Martinez',
+          actorRole: 'CUSTOMER',
+          action: 'TICKET_CREATED',
+          details: 'Created via Telegram'
+        },
+        {
+          id: 'aud-11',
+          timestamp: new Date(Date.now() - 4 * 3600000).toISOString(),
+          actorName: 'System (Auto-Assign)',
+          actorRole: 'SYSTEM',
+          action: 'AUTO_ASSIGNED',
+          details: 'Auto-assigned to Elena Rostova (Billing Specialist)'
+        }
+      ],
       messages: [
         {
           id: 'msg-101',
@@ -242,7 +384,33 @@ const initialData = {
       tags: ['Auth', 'OAuth', 'iOS'],
       createdAt: new Date(Date.now() - 14 * 3600000).toISOString(),
       updatedAt: new Date(Date.now() - 3 * 3600000).toISOString(),
+      firstResponseAt: new Date(Date.now() - 13 * 3600000).toISOString(),
       resolvedAt: null,
+      deletedAt: null,
+      csatRating: null,
+      csatComment: null,
+      isEscalated: false,
+      attachments: [],
+      auditLog: [
+        {
+          id: 'aud-20',
+          timestamp: new Date(Date.now() - 14 * 3600000).toISOString(),
+          actorName: 'Marcus Brody',
+          actorRole: 'CUSTOMER',
+          action: 'TICKET_CREATED',
+          details: 'Created in Web Portal'
+        },
+        {
+          id: 'aud-21',
+          timestamp: new Date(Date.now() - 3 * 3600000).toISOString(),
+          actorName: 'Sarah Connor',
+          actorRole: 'SUPER_ADMIN',
+          action: 'STATUS_CHANGED',
+          from: 'IN_PROGRESS',
+          to: 'WAITING_CUSTOMER',
+          details: 'Requested iOS SDK build info'
+        }
+      ],
       messages: [
         {
           id: 'msg-201',
@@ -281,7 +449,41 @@ const initialData = {
       tags: ['Reporting', 'Audit', 'SLA'],
       createdAt: new Date(Date.now() - 28 * 3600000).toISOString(),
       updatedAt: new Date(Date.now() - 5 * 3600000).toISOString(),
+      firstResponseAt: new Date(Date.now() - 26 * 3600000).toISOString(),
       resolvedAt: new Date(Date.now() - 5 * 3600000).toISOString(),
+      deletedAt: null,
+      csatRating: 5,
+      csatComment: 'Super fast response! Enabled the exporter within hours.',
+      isEscalated: false,
+      attachments: [],
+      auditLog: [
+        {
+          id: 'aud-30',
+          timestamp: new Date(Date.now() - 28 * 3600000).toISOString(),
+          actorName: 'Aisha Al-Mansoor',
+          actorRole: 'CUSTOMER',
+          action: 'TICKET_CREATED',
+          details: 'Created in Web Portal'
+        },
+        {
+          id: 'aud-31',
+          timestamp: new Date(Date.now() - 5 * 3600000).toISOString(),
+          actorName: 'Sarah Connor',
+          actorRole: 'SUPER_ADMIN',
+          action: 'STATUS_CHANGED',
+          from: 'IN_PROGRESS',
+          to: 'RESOLVED',
+          details: 'Enabled exporter feature in portal'
+        },
+        {
+          id: 'aud-32',
+          timestamp: new Date(Date.now() - 4 * 3600000).toISOString(),
+          actorName: 'Aisha Al-Mansoor',
+          actorRole: 'CUSTOMER',
+          action: 'CSAT_RATED',
+          details: 'Rated 5 stars: Super fast response!'
+        }
+      ],
       messages: [
         {
           id: 'msg-301',
@@ -320,7 +522,43 @@ const initialData = {
       tags: ['Database', 'Migration', 'Telemetry'],
       createdAt: new Date(Date.now() - 72 * 3600000).toISOString(),
       updatedAt: new Date(Date.now() - 20 * 3600000).toISOString(),
+      firstResponseAt: new Date(Date.now() - 70 * 3600000).toISOString(),
       resolvedAt: new Date(Date.now() - 22 * 3600000).toISOString(),
+      deletedAt: null,
+      csatRating: 5,
+      csatComment: 'Saved our release timeline!',
+      isEscalated: false,
+      attachments: [],
+      auditLog: [
+        {
+          id: 'aud-40',
+          timestamp: new Date(Date.now() - 72 * 3600000).toISOString(),
+          actorName: 'Liam Gallagher',
+          actorRole: 'CUSTOMER',
+          action: 'TICKET_CREATED',
+          details: 'Created in Telegram'
+        },
+        {
+          id: 'aud-41',
+          timestamp: new Date(Date.now() - 22 * 3600000).toISOString(),
+          actorName: 'David Vance',
+          actorRole: 'SUPPORT_AGENT',
+          action: 'STATUS_CHANGED',
+          from: 'IN_PROGRESS',
+          to: 'RESOLVED',
+          details: 'Restored snapshot and patched script'
+        },
+        {
+          id: 'aud-42',
+          timestamp: new Date(Date.now() - 20 * 3600000).toISOString(),
+          actorName: 'System',
+          actorRole: 'SYSTEM',
+          action: 'STATUS_CHANGED',
+          from: 'RESOLVED',
+          to: 'CLOSED',
+          details: 'Ticket closed after resolution confirmation'
+        }
+      ],
       messages: [
         {
           id: 'msg-401',
@@ -359,7 +597,33 @@ const initialData = {
       tags: ['Billing', 'Stripe', 'SEPA', 'Invoice'],
       createdAt: new Date(Date.now() - 5 * 3600000).toISOString(),
       updatedAt: new Date(Date.now() - 40 * 60000).toISOString(),
+      firstResponseAt: new Date(Date.now() - 40 * 60000).toISOString(),
       resolvedAt: null,
+      deletedAt: null,
+      csatRating: null,
+      csatComment: null,
+      isEscalated: false,
+      attachments: [],
+      auditLog: [
+        {
+          id: 'aud-50',
+          timestamp: new Date(Date.now() - 5 * 3600000).toISOString(),
+          actorName: 'Aisha Al-Mansoor',
+          actorRole: 'CUSTOMER',
+          action: 'TICKET_CREATED',
+          details: 'Created via Telegram'
+        },
+        {
+          id: 'aud-51',
+          timestamp: new Date(Date.now() - 40 * 60000).toISOString(),
+          actorName: 'Elena Rostova',
+          actorRole: 'BILLING_SPECIALIST',
+          action: 'STATUS_CHANGED',
+          from: 'OPEN',
+          to: 'IN_PROGRESS',
+          details: 'Generated SEPA invoice reference #EU-88219'
+        }
+      ],
       messages: [
         {
           id: 'msg-501',
@@ -398,7 +662,23 @@ const initialData = {
       tags: ['Billing', 'Refund', 'Credit Note', 'License'],
       createdAt: new Date(Date.now() - 1 * 3600000).toISOString(),
       updatedAt: new Date(Date.now() - 1 * 3600000).toISOString(),
+      firstResponseAt: null,
       resolvedAt: null,
+      deletedAt: null,
+      csatRating: null,
+      csatComment: null,
+      isEscalated: false,
+      attachments: [],
+      auditLog: [
+        {
+          id: 'aud-60',
+          timestamp: new Date(Date.now() - 1 * 3600000).toISOString(),
+          actorName: 'Sophia Martinez',
+          actorRole: 'CUSTOMER',
+          action: 'TICKET_CREATED',
+          details: 'Created in Web Portal'
+        }
+      ],
       messages: [
         {
           id: 'msg-601',
@@ -420,14 +700,6 @@ const initialData = {
       text: 'Emergency: our production webhook endpoint is receiving 504 Gateway Timeout intermittently!',
       ticketId: 'PD-1001',
       timestamp: new Date(Date.now() - 2 * 3600000).toISOString()
-    },
-    {
-      id: 'tlog-2',
-      type: 'OUTBOUND',
-      to: '89123456',
-      text: '[Ticket PD-1001] Agent David Vance: Hi Liam, investigating the ingress proxy logs right away...',
-      ticketId: 'PD-1001',
-      timestamp: new Date(Date.now() - 90 * 60000).toISOString()
     }
   ]
 };
@@ -442,25 +714,33 @@ class Database {
       if (fs.existsSync(DB_FILE)) {
         const raw = fs.readFileSync(DB_FILE, 'utf8');
         const parsed = JSON.parse(raw);
-        if (!parsed.users || parsed.users.length === 0) {
-          parsed.users = initialData.users;
-          this.save(parsed);
-        }
+        // Ensure initial required structures
+        if (!parsed.telegramLinkTokens) parsed.telegramLinkTokens = {};
         return parsed;
       }
     } catch (err) {
-      console.error('Error loading CRM database file, resetting to defaults:', err.message);
+      console.error('Error loading crm.json, using seed data:', err.message);
     }
     this.save(initialData);
     return JSON.parse(JSON.stringify(initialData));
   }
 
-  save(data = this.data) {
+  save(dataToSave = this.data) {
     try {
-      fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2), 'utf8');
+      fs.writeFileSync(DB_FILE, JSON.stringify(dataToSave, null, 2), 'utf8');
     } catch (err) {
-      console.error('Error saving CRM database:', err.message);
+      console.error('Error saving crm.json:', err.message);
     }
+  }
+
+  getPermissions(role) {
+    return PERMISSIONS[role] || [];
+  }
+
+  hasPermission(role, permission) {
+    if (!role) return false;
+    const perms = this.getPermissions(role);
+    return perms.includes('*') || perms.includes(permission);
   }
 
   getUsers() {
@@ -492,7 +772,6 @@ class Database {
       user = (this.data.users || []).find(u => u.id === userId);
     }
     if (!user) return null;
-    // Password must be provided and must match the account password
     if (!password || (user.password && user.password !== password)) {
       return null;
     }
@@ -549,8 +828,96 @@ class Database {
     return customer;
   }
 
+  // ------------------------------------------------------------
+  // SLA ENGINE: Calculate deadlines and check breach
+  // ------------------------------------------------------------
+  calculateSLA(ticket) {
+    if (!ticket) return null;
+    const priority = ticket.priority || 'MEDIUM';
+    const config = SLA_CONFIG[priority] || SLA_CONFIG.MEDIUM;
+    const createdAtMs = new Date(ticket.createdAt).getTime();
+
+    const firstResponseDeadlineMs = createdAtMs + config.firstResponseHours * 3600000;
+    const resolutionDeadlineMs = createdAtMs + config.resolutionHours * 3600000;
+    const nowMs = Date.now();
+
+    const isResolved = ticket.status === 'RESOLVED' || ticket.status === 'CLOSED';
+    const hasFirstResponse = !!ticket.firstResponseAt;
+
+    let isBreached = false;
+    let breachReason = '';
+
+    if (!hasFirstResponse && nowMs > firstResponseDeadlineMs && !isResolved) {
+      isBreached = true;
+      breachReason = 'First response SLA breached';
+    } else if (!isResolved && nowMs > resolutionDeadlineMs) {
+      isBreached = true;
+      breachReason = 'Resolution SLA breached';
+    } else if (ticket.resolvedAt && new Date(ticket.resolvedAt).getTime() > resolutionDeadlineMs) {
+      isBreached = true;
+      breachReason = 'Resolved past SLA deadline';
+    }
+
+    const remainingResMs = resolutionDeadlineMs - nowMs;
+    let remainingText = '';
+    if (isResolved) {
+      remainingText = 'Resolved';
+    } else if (remainingResMs < 0) {
+      const overMin = Math.abs(Math.round(remainingResMs / 60000));
+      const overH = Math.floor(overMin / 60);
+      const overM = overMin % 60;
+      remainingText = `OVERDUE -${overH}h ${overM}m`;
+    } else {
+      const remMin = Math.round(remainingResMs / 60000);
+      const remH = Math.floor(remMin / 60);
+      const remM = remMin % 60;
+      remainingText = `${remH}h ${remM}m left`;
+    }
+
+    return {
+      firstResponseDeadline: new Date(firstResponseDeadlineMs).toISOString(),
+      resolutionDeadline: new Date(resolutionDeadlineMs).toISOString(),
+      isBreached,
+      breachReason,
+      remainingText
+    };
+  }
+
+  // ------------------------------------------------------------
+  // AUTO-ASSIGNMENT: Round-robin / Least-loaded agent
+  // ------------------------------------------------------------
+  assignLeastLoadedAgent(department = 'Technical Support') {
+    if (!this.data.agents || this.data.agents.length === 0) return 'David Vance';
+
+    // Filter agents by department if possible
+    let candidates = [...this.data.agents];
+    if (department.toLowerCase().includes('billing')) {
+      candidates = candidates.filter(a => a.name === 'Elena Rostova' || a.role.toLowerCase().includes('billing'));
+    } else {
+      candidates = candidates.filter(a => a.name !== 'Elena Rostova');
+    }
+    if (candidates.length === 0) candidates = [...this.data.agents];
+
+    candidates.sort((a, b) => (a.activeTickets || 0) - (b.activeTickets || 0));
+    const chosen = candidates[0];
+    chosen.activeTickets = (chosen.activeTickets || 0) + 1;
+    return chosen.name;
+  }
+
+  // ------------------------------------------------------------
+  // STATE MACHINE VALIDATOR
+  // ------------------------------------------------------------
+  isValidStateTransition(currentStatus, newStatus) {
+    if (currentStatus === newStatus) return true;
+    const allowed = STATE_TRANSITIONS[currentStatus] || [];
+    return allowed.includes(newStatus);
+  }
+
+  // ------------------------------------------------------------
+  // TICKETS: GET, FILTER, RBAC
+  // ------------------------------------------------------------
   getTickets(filters = {}) {
-    let list = [...this.data.tickets];
+    let list = (this.data.tickets || []).filter(t => !t.deletedAt); // Exclude soft-deleted
 
     // Role-based Access Control (RBAC) Ticket Scoping
     if (filters.user) {
@@ -596,6 +963,9 @@ class Database {
     if (filters.channel && filters.channel !== 'ALL') {
       list = list.filter(t => t.channel === filters.channel);
     }
+    if (filters.assignedTo && filters.assignedTo !== 'ALL') {
+      list = list.filter(t => t.assignedTo === filters.assignedTo);
+    }
     if (filters.search) {
       const q = filters.search.toLowerCase();
       list = list.filter(t =>
@@ -606,24 +976,53 @@ class Database {
         (t.tags && t.tags.some(tag => tag.toLowerCase().includes(q)))
       );
     }
+
+    // Enrich with live SLA calculations
+    list = list.map(t => {
+      const sla = this.calculateSLA(t);
+      return { ...t, sla };
+    });
+
+    // Auto-escalate tickets that breached SLA
+    let hasEscalations = false;
+    list.forEach(t => {
+      if (t.sla.isBreached && !t.isEscalated && t.status !== 'RESOLVED' && t.status !== 'CLOSED') {
+        t.isEscalated = true;
+        hasEscalations = true;
+        if (!t.auditLog) t.auditLog = [];
+        t.auditLog.push({
+          id: 'aud-' + Date.now(),
+          timestamp: new Date().toISOString(),
+          actorName: 'System SLA Monitor',
+          actorRole: 'SYSTEM',
+          action: 'AUTO_ESCALATED',
+          details: `Ticket breached SLA: ${t.sla.breachReason}. Escalated to Lead.`
+        });
+      }
+    });
+    if (hasEscalations) this.save();
+
     // Sort descending by updated / created
     list.sort((a, b) => new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt));
     return list;
   }
 
   getTicketById(id) {
-    return this.data.tickets.find(t => t.id === id);
+    const ticket = (this.data.tickets || []).find(t => t.id === id);
+    if (!ticket) return null;
+    const sla = this.calculateSLA(ticket);
+    return { ...ticket, sla };
   }
 
   generateTicketId() {
-    const numbers = this.data.tickets
+    const numbers = (this.data.tickets || [])
       .map(t => parseInt(t.id.replace(/\D/g, ''), 10))
       .filter(n => !isNaN(n));
     const nextNum = (numbers.length > 0 ? Math.max(...numbers) : 1000) + 1;
     return `PD-${nextNum}`;
   }
 
-  createTicket(ticketData) {
+  createTicket(ticketData, actor = null) {
     const id = this.generateTicketId();
     const customer = this.findOrCreateCustomer({
       name: ticketData.customerName,
@@ -633,20 +1032,21 @@ class Database {
       company: ticketData.company
     });
 
-    // Auto-assign to an agent if not specified
+    // Auto-assign agent if none specified
     let assignedTo = ticketData.assignedTo;
-    if (!assignedTo && this.data.agents.length > 0) {
-      // Pick agent with least active tickets
-      const sortedAgents = [...this.data.agents].sort((a, b) => a.activeTickets - b.activeTickets);
-      assignedTo = sortedAgents[0].name;
-      sortedAgents[0].activeTickets++;
+    if (!assignedTo) {
+      assignedTo = this.assignLeastLoadedAgent(ticketData.department || 'Technical Support');
     }
+
+    const now = new Date().toISOString();
+    const actorName = actor ? actor.name : (ticketData.customerName || 'Customer');
+    const actorRole = actor ? actor.role : 'CUSTOMER';
 
     const newTicket = {
       id,
-      title: ticketData.title || 'Support Request via ' + (ticketData.channel || 'Web Portal'),
-      description: ticketData.description || '',
-      status: ticketData.status || 'OPEN',
+      title: ticketData.title,
+      description: ticketData.description || ticketData.title,
+      status: 'OPEN',
       priority: ticketData.priority || 'MEDIUM',
       department: ticketData.department || 'Technical Support',
       channel: ticketData.channel || 'WEB_PORTAL',
@@ -655,50 +1055,144 @@ class Database {
       customerEmail: customer.email,
       telegramChatId: customer.telegramChatId || '',
       telegramUsername: customer.telegramUsername || '',
-      assignedTo: assignedTo || 'Unassigned',
-      tags: ticketData.tags || ['General'],
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      assignedTo,
+      tags: ticketData.tags || (ticketData.department === 'Billing' ? ['Billing'] : ['General']),
+      createdAt: now,
+      updatedAt: now,
+      firstResponseAt: null,
       resolvedAt: null,
+      deletedAt: null,
+      csatRating: null,
+      csatComment: null,
+      isEscalated: false,
+      attachments: ticketData.attachments || [],
+      auditLog: [
+        {
+          id: 'aud-' + Date.now() + '-1',
+          timestamp: now,
+          actorName,
+          actorRole,
+          action: 'TICKET_CREATED',
+          details: `Ticket created via ${ticketData.channel || 'WEB_PORTAL'}`
+        },
+        {
+          id: 'aud-' + Date.now() + '-2',
+          timestamp: now,
+          actorName: 'System (Auto-Assign)',
+          actorRole: 'SYSTEM',
+          action: 'AUTO_ASSIGNED',
+          details: `Dispatched to ${assignedTo} (${ticketData.department || 'Technical Support'})`
+        }
+      ],
       messages: [
         {
           id: 'msg-' + Date.now(),
           sender: 'CUSTOMER',
-          senderName: customer.name + (ticketData.channel === 'TELEGRAM' ? ' (Telegram)' : ''),
+          senderName: customer.name,
           text: ticketData.description || ticketData.title,
           isInternal: false,
-          timestamp: new Date().toISOString(),
-          channel: ticketData.channel || 'WEB_PORTAL'
+          timestamp: now,
+          channel: ticketData.channel || 'WEB_PORTAL',
+          attachments: ticketData.attachments || []
         }
       ]
     };
 
     this.data.tickets.unshift(newTicket);
     this.save();
-    return newTicket;
+    return { ...newTicket, sla: this.calculateSLA(newTicket) };
   }
 
-  updateTicket(id, updates) {
-    const ticket = this.getTicketById(id);
+  updateTicket(id, updates, actor = null) {
+    const ticket = (this.data.tickets || []).find(t => t.id === id);
     if (!ticket) return null;
 
-    // Handle status change metrics
+    if (!ticket.auditLog) ticket.auditLog = [];
+    const actorName = actor ? actor.name : 'System';
+    const actorRole = actor ? actor.role : 'SYSTEM';
+
+    // State Machine Validation with Admin Full Rights Override
     if (updates.status && updates.status !== ticket.status) {
-      if (updates.status === 'RESOLVED' && !ticket.resolvedAt) {
-        updates.resolvedAt = new Date().toISOString();
-      } else if (updates.status !== 'RESOLVED' && updates.status !== 'CLOSED') {
-        updates.resolvedAt = null;
+      const isAdmin = !actor || actor.role === 'SUPER_ADMIN' || this.hasPermission(actor.role, 'ticket.override_status');
+      if (!isAdmin && !this.isValidStateTransition(ticket.status, updates.status)) {
+        throw new Error(`Invalid status transition from ${ticket.status} to ${updates.status}`);
       }
+
+      ticket.auditLog.push({
+        id: 'aud-' + Date.now(),
+        timestamp: new Date().toISOString(),
+        actorName,
+        actorRole,
+        action: 'STATUS_CHANGED',
+        from: ticket.status,
+        to: updates.status,
+        details: `Status updated from ${ticket.status} to ${updates.status}${isAdmin ? ' (Admin Authorized)' : ''}`
+      });
+
+      if (updates.status === 'RESOLVED') {
+        updates.resolvedAt = new Date().toISOString();
+        updates.closedAt = null;
+      } else if (updates.status === 'CLOSED') {
+        if (!ticket.resolvedAt) updates.resolvedAt = new Date().toISOString();
+        updates.closedAt = new Date().toISOString();
+      } else if (updates.status === 'REOPENED') {
+        updates.resolvedAt = null;
+        updates.closedAt = null;
+        updates.status = 'IN_PROGRESS';
+      } else if (updates.status === 'OPEN' || updates.status === 'IN_PROGRESS' || updates.status === 'WAITING_CUSTOMER') {
+        updates.resolvedAt = null;
+        updates.closedAt = null;
+      }
+    }
+
+    // Priority Change Audit
+    if (updates.priority && updates.priority !== ticket.priority) {
+      ticket.auditLog.push({
+        id: 'aud-' + Date.now() + '-pri',
+        timestamp: new Date().toISOString(),
+        actorName,
+        actorRole,
+        action: 'PRIORITY_CHANGED',
+        from: ticket.priority,
+        to: updates.priority,
+        details: `Priority adjusted to ${updates.priority}`
+      });
+    }
+
+    // Assignee Change Audit
+    if (updates.assignedTo && updates.assignedTo !== ticket.assignedTo) {
+      ticket.auditLog.push({
+        id: 'aud-' + Date.now() + '-asg',
+        timestamp: new Date().toISOString(),
+        actorName,
+        actorRole,
+        action: 'REASSIGNED',
+        from: ticket.assignedTo,
+        to: updates.assignedTo,
+        details: `Reassigned from ${ticket.assignedTo} to ${updates.assignedTo}`
+      });
+    }
+
+    // Escalation flag
+    if (updates.isEscalated && !ticket.isEscalated) {
+      ticket.auditLog.push({
+        id: 'aud-' + Date.now() + '-esc',
+        timestamp: new Date().toISOString(),
+        actorName,
+        actorRole,
+        action: 'ESCALATED',
+        details: 'Manually escalated by supervisor'
+      });
     }
 
     Object.assign(ticket, updates);
     ticket.updatedAt = new Date().toISOString();
     this.save();
-    return ticket;
+    return { ...ticket, sla: this.calculateSLA(ticket) };
   }
 
-  addMessageToTicket(id, messageData) {
-    const ticket = this.getTicketById(id);
+  addMessageToTicket(id, messageData, actor = null) {
+    const ticket = (this.data.tickets || []).find(t => t.id === id);
     if (!ticket) return null;
 
     const message = {
@@ -708,36 +1202,151 @@ class Database {
       text: messageData.text,
       isInternal: !!messageData.isInternal,
       timestamp: new Date().toISOString(),
-      channel: messageData.channel || (messageData.sender === 'AGENT' ? 'CRM_ADMIN' : ticket.channel)
+      channel: messageData.channel || (messageData.sender === 'AGENT' ? 'CRM_ADMIN' : ticket.channel),
+      attachments: messageData.attachments || []
     };
 
     if (!ticket.messages) ticket.messages = [];
     ticket.messages.push(message);
 
-    // If agent replied to customer, move from OPEN to IN_PROGRESS or WAITING_CUSTOMER
+    if (!ticket.auditLog) ticket.auditLog = [];
+    const actorName = actor ? actor.name : (messageData.senderName || 'Agent');
+    const actorRole = actor ? actor.role : (messageData.sender === 'CUSTOMER' ? 'CUSTOMER' : 'SUPPORT_AGENT');
+
+    // First Response SLA Timestamp
+    if (message.sender === 'AGENT' && !message.isInternal && !ticket.firstResponseAt) {
+      ticket.firstResponseAt = new Date().toISOString();
+      ticket.auditLog.push({
+        id: 'aud-' + Date.now() + '-sla',
+        timestamp: new Date().toISOString(),
+        actorName,
+        actorRole,
+        action: 'FIRST_RESPONSE_RECORDED',
+        details: 'First public agent response delivered'
+      });
+    }
+
+    // Status auto-transitions based on conversation flow
     if (message.sender === 'AGENT' && !message.isInternal) {
       if (ticket.status === 'OPEN') {
         ticket.status = 'IN_PROGRESS';
       }
+      ticket.auditLog.push({
+        id: 'aud-' + Date.now() + '-reply',
+        timestamp: new Date().toISOString(),
+        actorName,
+        actorRole,
+        action: 'PUBLIC_REPLY_SENT',
+        details: `Sent public reply to customer`
+      });
+    } else if (message.sender === 'AGENT' && message.isInternal) {
+      ticket.auditLog.push({
+        id: 'aud-' + Date.now() + '-note',
+        timestamp: new Date().toISOString(),
+        actorName,
+        actorRole,
+        action: 'INTERNAL_NOTE_ADDED',
+        details: 'Added private internal collaboration note'
+      });
     } else if (message.sender === 'CUSTOMER') {
-      if (ticket.status === 'WAITING_CUSTOMER') {
+      if (ticket.status === 'WAITING_CUSTOMER' || ticket.status === 'RESOLVED') {
         ticket.status = 'IN_PROGRESS';
       }
+      ticket.auditLog.push({
+        id: 'aud-' + Date.now() + '-cust',
+        timestamp: new Date().toISOString(),
+        actorName,
+        actorRole,
+        action: 'CUSTOMER_REPLY_RECEIVED',
+        details: 'Customer sent follow-up message'
+      });
     }
 
     ticket.updatedAt = new Date().toISOString();
     this.save();
-    return { ticket, message };
+    return { ticket: { ...ticket, sla: this.calculateSLA(ticket) }, message };
   }
 
-  deleteTicket(id) {
-    const idx = this.data.tickets.findIndex(t => t.id === id);
-    if (idx !== -1) {
-      const removed = this.data.tickets.splice(idx, 1)[0];
-      this.save();
-      return removed;
+  // Soft Delete (Preserves audit history and compliance)
+  softDeleteTicket(id, actor = null) {
+    const ticket = (this.data.tickets || []).find(t => t.id === id);
+    if (!ticket) return null;
+
+    ticket.deletedAt = new Date().toISOString();
+    ticket.deletedBy = actor ? `${actor.name} (${actor.role})` : 'Administrator';
+
+    if (!ticket.auditLog) ticket.auditLog = [];
+    ticket.auditLog.push({
+      id: 'aud-' + Date.now() + '-del',
+      timestamp: new Date().toISOString(),
+      actorName: actor ? actor.name : 'Administrator',
+      actorRole: actor ? actor.role : 'SUPER_ADMIN',
+      action: 'SOFT_DELETED',
+      details: 'Ticket archived and marked deleted by administrator'
+    });
+
+    this.save();
+    return ticket;
+  }
+
+  // CSAT Rating Collection
+  rateTicketCSAT(id, rating, comment = '') {
+    const ticket = (this.data.tickets || []).find(t => t.id === id);
+    if (!ticket) return null;
+
+    const r = Math.min(5, Math.max(1, parseInt(rating, 10) || 5));
+    ticket.csatRating = r;
+    ticket.csatComment = comment;
+
+    if (!ticket.auditLog) ticket.auditLog = [];
+    ticket.auditLog.push({
+      id: 'aud-' + Date.now() + '-csat',
+      timestamp: new Date().toISOString(),
+      actorName: ticket.customerName,
+      actorRole: 'CUSTOMER',
+      action: 'CSAT_RATED',
+      details: `Customer submitted CSAT score: ${r} / 5 stars${comment ? ` ("${comment}")` : ''}`
+    });
+
+    this.save();
+    return ticket;
+  }
+
+  // ------------------------------------------------------------
+  // TELEGRAM ONE-TIME LINK TOKEN ENGINE
+  // ------------------------------------------------------------
+  generateTelegramLinkToken(customerId) {
+    const token = 'pd_' + Math.random().toString(36).substring(2, 10) + Date.now().toString(36);
+    if (!this.data.telegramLinkTokens) this.data.telegramLinkTokens = {};
+    this.data.telegramLinkTokens[token] = {
+      customerId,
+      createdAt: new Date().toISOString(),
+      expiresAt: new Date(Date.now() + 24 * 3600000).toISOString() // 24 hour expiry
+    };
+    this.save();
+    return token;
+  }
+
+  verifyTelegramLinkToken(token, telegramUser) {
+    if (!this.data.telegramLinkTokens || !this.data.telegramLinkTokens[token]) {
+      return { success: false, error: 'Invalid or expired link token' };
     }
-    return null;
+
+    const { customerId } = this.data.telegramLinkTokens[token];
+    const customer = (this.data.customers || []).find(c => c.id === customerId);
+    if (!customer) {
+      return { success: false, error: 'Customer account not found' };
+    }
+
+    // Permanently link chat_id and username
+    customer.telegramChatId = String(telegramUser.id);
+    customer.telegramUsername = telegramUser.username || telegramUser.first_name || '';
+    customer.isTelegramVerified = true;
+
+    // Delete token (one-time use)
+    delete this.data.telegramLinkTokens[token];
+    this.save();
+    return { success: true, customer };
   }
 
   addTelegramLog(log) {
@@ -759,9 +1368,13 @@ class Database {
     return this.data.telegramLogs || [];
   }
 
+  // ------------------------------------------------------------
+  // SENIOR DEVELOPER ANALYTICS & EXECUTIVE KPI ENGINE
+  // ------------------------------------------------------------
   getAnalytics(user = null) {
     const tickets = this.getTickets({ user });
     const total = tickets.length;
+
     const open = tickets.filter(t => t.status === 'OPEN').length;
     const inProgress = tickets.filter(t => t.status === 'IN_PROGRESS').length;
     const waiting = tickets.filter(t => t.status === 'WAITING_CUSTOMER').length;
@@ -776,9 +1389,34 @@ class Database {
     const telegramCount = tickets.filter(t => t.channel === 'TELEGRAM').length;
     const webCount = tickets.filter(t => t.channel === 'WEB_PORTAL').length;
 
-    // Calculate avg resolution time in hours
+    // Time buckets (Today, This Week, This Month)
+    const now = new Date();
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+    const startOfWeek = new Date(now.getFullYear(), now.getMonth(), now.getDate() - now.getDay()).getTime();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+
+    const createdToday = tickets.filter(t => new Date(t.createdAt).getTime() >= startOfToday).length;
+    const resolvedToday = tickets.filter(t => t.resolvedAt && new Date(t.resolvedAt).getTime() >= startOfToday).length;
+
+    const createdWeek = tickets.filter(t => new Date(t.createdAt).getTime() >= startOfWeek).length;
+    const resolvedWeek = tickets.filter(t => t.resolvedAt && new Date(t.resolvedAt).getTime() >= startOfWeek).length;
+
+    const createdMonth = tickets.filter(t => new Date(t.createdAt).getTime() >= startOfMonth).length;
+    const resolvedMonth = tickets.filter(t => t.resolvedAt && new Date(t.resolvedAt).getTime() >= startOfMonth).length;
+
+    // Average First Response Time (hours)
+    const firstResponded = tickets.filter(t => t.firstResponseAt);
+    let avgFirstResponseHours = 0.4;
+    if (firstResponded.length > 0) {
+      const sumFirstMs = firstResponded.reduce((acc, t) => {
+        return acc + Math.max(0, new Date(t.firstResponseAt) - new Date(t.createdAt));
+      }, 0);
+      avgFirstResponseHours = (sumFirstMs / (firstResponded.length * 3600000)).toFixed(1);
+    }
+
+    // Average Resolution Time (hours)
     const resolvedTickets = tickets.filter(t => t.resolvedAt);
-    let avgResolutionHours = 2.4; // default baseline
+    let avgResolutionHours = 2.4;
     if (resolvedTickets.length > 0) {
       const totalHours = resolvedTickets.reduce((acc, t) => {
         const diffMs = new Date(t.resolvedAt) - new Date(t.createdAt);
@@ -787,7 +1425,41 @@ class Database {
       avgResolutionHours = (totalHours / resolvedTickets.length).toFixed(1);
     }
 
-    // Departments breakdown
+    // SLA Compliance Percentage
+    const completedOrEvaluated = tickets.filter(t => t.sla);
+    const breachedCount = completedOrEvaluated.filter(t => t.sla.isBreached).length;
+    const slaComplianceRate = completedOrEvaluated.length > 0
+      ? (((completedOrEvaluated.length - breachedCount) / completedOrEvaluated.length) * 100).toFixed(1)
+      : '98.4';
+
+    // Workload & Performance per Agent
+    const agentWorkload = {};
+    tickets.forEach(t => {
+      const name = t.assignedTo || 'Unassigned';
+      if (!agentWorkload[name]) {
+        agentWorkload[name] = { active: 0, resolved: 0, total: 0 };
+      }
+      agentWorkload[name].total++;
+      if (t.status === 'RESOLVED' || t.status === 'CLOSED') {
+        agentWorkload[name].resolved++;
+      } else {
+        agentWorkload[name].active++;
+      }
+    });
+
+    // CSAT Score & Distribution
+    const ratedTickets = tickets.filter(t => t.csatRating);
+    let avgCsat = 4.8;
+    const csatDistribution = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+    if (ratedTickets.length > 0) {
+      const totalRating = ratedTickets.reduce((acc, t) => {
+        csatDistribution[t.csatRating] = (csatDistribution[t.csatRating] || 0) + 1;
+        return acc + t.csatRating;
+      }, 0);
+      avgCsat = (totalRating / ratedTickets.length).toFixed(1);
+    }
+
+    // Category / Department breakdown
     const deptCounts = {};
     tickets.forEach(t => {
       deptCounts[t.department] = (deptCounts[t.department] || 0) + 1;
@@ -806,9 +1478,18 @@ class Database {
       low,
       telegramCount,
       webCount,
+      periods: {
+        today: { open: createdToday, resolved: resolvedToday },
+        thisWeek: { open: createdWeek, resolved: resolvedWeek },
+        thisMonth: { open: createdMonth, resolved: resolvedMonth }
+      },
+      avgFirstResponseHours,
       avgResolutionHours,
-      csatScore: '98.4%',
-      slaBreachRate: '1.2%',
+      slaComplianceRate: `${slaComplianceRate}%`,
+      slaBreaches: breachedCount,
+      agentWorkload,
+      csatScore: `${avgCsat} / 5.0`,
+      csatDistribution,
       departments: deptCounts,
       customersCount: this.data.customers.length
     };

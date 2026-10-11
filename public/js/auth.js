@@ -286,45 +286,135 @@ const AuthModule = {
       dropBadge.className = `role-pill-badge role-badge-${user.role.toLowerCase()}`;
     }
 
-    // 3. Role-Based Workspace Views & Navigation Permissions
-    const settingsNavItem = document.querySelector('.sidebar-nav a[data-tab="settings"]');
-    const deleteTicketBtn = document.getElementById('deleteTicketBtn');
+    // 3. Strict Role-Based Workspace Views & Navigation Permissions
     const portalSwitcher = document.querySelector('.portal-switch-pill');
+    const tgHeaderBadge = document.getElementById('telegramHeaderBadge');
+    const navDashboard = document.querySelector('.sidebar-nav a[data-tab="dashboard"]');
+    const navTickets = document.querySelector('.sidebar-nav a[data-tab="tickets"]');
+    const navTelegram = document.querySelector('.sidebar-nav a[data-tab="telegram"]');
+    const navCustomers = document.querySelector('.sidebar-nav a[data-tab="customers"]');
+    const navAnalytics = document.querySelector('.sidebar-nav a[data-tab="analytics"]');
+    const navAgents = document.querySelector('.sidebar-nav a[data-tab="agents"]');
+    const navSettings = document.querySelector('.sidebar-nav a[data-tab="settings"]');
+    const navSectionLabels = document.querySelectorAll('.sidebar-nav .nav-section-label');
+    const sidebarFooterCard = document.querySelector('.sidebar-footer-card');
+
+    const deleteTicketBtn = document.getElementById('deleteTicketBtn');
+    const splitDeleteTicketBtn = document.getElementById('splitDeleteTicketBtn');
+    const splitQuickResolveBtn = document.getElementById('splitQuickResolveBtn');
+    const splitTabInternal = document.getElementById('splitTabInternal');
+    const ticketsTitle = document.querySelector('#tab-tickets .panel-title');
+    const ticketsSubtitle = document.querySelector('#tab-tickets .panel-subtitle');
+    const filterDeptGroup = document.getElementById('filterDepartmentGroup');
+    const newTicketTopBtn = document.getElementById('openNewTicketModalBtn');
 
     if (user.role === 'CUSTOMER') {
-      // Customer: Lock admin desk and automatically switch to self-service portal
+      // CUSTOMER ROLE: Strictly show only Customer rights (No admin or staff features)
       if (portalSwitcher) portalSwitcher.style.display = 'none';
-      if (window.App && typeof App.switchPortalMode === 'function') {
-        App.switchPortalMode(true);
+      if (tgHeaderBadge) tgHeaderBadge.style.display = 'none';
+
+      // Hide all administrative and staff tabs
+      if (navDashboard) navDashboard.style.display = 'none';
+      if (navTelegram) navTelegram.style.display = 'none';
+      if (navCustomers) navCustomers.style.display = 'none';
+      if (navAnalytics) navAnalytics.style.display = 'none';
+      if (navAgents) navAgents.style.display = 'none';
+      if (navSettings) navSettings.style.display = 'none';
+      if (sidebarFooterCard) sidebarFooterCard.style.display = 'none';
+      navSectionLabels.forEach(el => el.style.display = 'none');
+
+      // Show strictly "My Support Tickets"
+      if (navTickets) {
+        navTickets.style.display = 'flex';
+        const span = navTickets.querySelector('span:not(.nav-badge)');
+        if (span) span.textContent = 'My Support Tickets';
       }
+
+      if (newTicketTopBtn) {
+        const textSpan = newTicketTopBtn.querySelector('span');
+        if (textSpan) textSpan.textContent = 'Submit Request';
+      }
+
+      // Automatically place customer in their tickets desk
+      if (window.App && typeof App.switchTab === 'function') {
+        App.switchTab('tickets');
+      }
+
+      if (ticketsTitle) ticketsTitle.textContent = 'My Support Requests';
+      if (ticketsSubtitle) ticketsSubtitle.textContent = 'Track your active inquiries, communicate directly with specialists, and rate resolved issues.';
+      if (filterDeptGroup) filterDeptGroup.style.display = 'none';
+
+      // Hide staff-only buttons
+      if (deleteTicketBtn) deleteTicketBtn.style.display = 'none';
+      if (splitDeleteTicketBtn) splitDeleteTicketBtn.style.display = 'none';
+      if (splitQuickResolveBtn) splitQuickResolveBtn.style.display = 'none';
+      if (splitTabInternal) splitTabInternal.style.display = 'none';
+
+    } else if (user.role === 'BILLING_SPECIALIST' || user.role === 'SUPPORT_AGENT') {
+      // SPECIALIST STAFF (Billing / Support)
+      if (portalSwitcher) portalSwitcher.style.display = 'none';
+      if (tgHeaderBadge) tgHeaderBadge.style.display = 'inline-flex';
+
+      if (navDashboard) navDashboard.style.display = 'flex';
+      if (navTickets) {
+        navTickets.style.display = 'flex';
+        const span = navTickets.querySelector('span:not(.nav-badge)');
+        if (span) span.textContent = user.role === 'BILLING_SPECIALIST' ? 'Billing Queue' : 'Support Queue';
+      }
+      if (navTelegram) navTelegram.style.display = 'flex';
+      if (navCustomers) navCustomers.style.display = 'flex';
+      if (navAnalytics) navAnalytics.style.display = 'none';
+      if (navAgents) navAgents.style.display = 'none';
+      if (navSettings) navSettings.style.display = 'none';
+      if (sidebarFooterCard) sidebarFooterCard.style.display = 'block';
+      navSectionLabels.forEach(el => el.style.display = 'block');
+
+      if (newTicketTopBtn) {
+        const textSpan = newTicketTopBtn.querySelector('span');
+        if (textSpan) textSpan.textContent = 'New Ticket';
+      }
+
+      if (ticketsTitle) ticketsTitle.textContent = user.role === 'BILLING_SPECIALIST' ? 'Billing Operations Queue' : 'Technical Support Queue';
+      if (ticketsSubtitle) ticketsSubtitle.textContent = 'Triage, resolve requests in your department scope, and sync live with Telegram.';
+      if (filterDeptGroup) filterDeptGroup.style.display = 'flex';
+
+      if (deleteTicketBtn) deleteTicketBtn.style.display = 'none';
+      if (splitDeleteTicketBtn) splitDeleteTicketBtn.style.display = 'none';
+      if (splitQuickResolveBtn) splitQuickResolveBtn.style.display = 'inline-flex';
+      if (splitTabInternal) splitTabInternal.style.display = 'flex';
+
     } else {
-      // Support Staff (Admin, Agent, Billing)
-      if (portalSwitcher) portalSwitcher.style.display = 'flex';
-      if (window.App && typeof App.switchPortalMode === 'function') {
-        App.switchPortalMode(false);
+      // SUPER ADMIN: Full unrestricted access
+      if (portalSwitcher) portalSwitcher.style.display = 'none';
+      if (tgHeaderBadge) tgHeaderBadge.style.display = 'inline-flex';
+
+      if (navDashboard) navDashboard.style.display = 'flex';
+      if (navTickets) {
+        navTickets.style.display = 'flex';
+        const span = navTickets.querySelector('span:not(.nav-badge)');
+        if (span) span.textContent = 'Tickets Center';
+      }
+      if (navTelegram) navTelegram.style.display = 'flex';
+      if (navCustomers) navCustomers.style.display = 'flex';
+      if (navAnalytics) navAnalytics.style.display = 'flex';
+      if (navAgents) navAgents.style.display = 'flex';
+      if (navSettings) navSettings.style.display = 'flex';
+      if (sidebarFooterCard) sidebarFooterCard.style.display = 'block';
+      navSectionLabels.forEach(el => el.style.display = 'block');
+
+      if (newTicketTopBtn) {
+        const textSpan = newTicketTopBtn.querySelector('span');
+        if (textSpan) textSpan.textContent = 'New Ticket';
       }
 
-      if (user.role === 'SUPER_ADMIN') {
-        // Super Admin: Full unrestricted access
-        if (settingsNavItem) {
-          settingsNavItem.style.display = 'flex';
-          settingsNavItem.style.opacity = '1';
-          settingsNavItem.style.pointerEvents = 'auto';
-        }
-        if (deleteTicketBtn) deleteTicketBtn.style.display = 'inline-flex';
-      } else {
-        // Agent or Billing Specialist: Restrict admin-only actions
-        if (settingsNavItem) {
-          settingsNavItem.style.opacity = '0.4';
-          settingsNavItem.style.pointerEvents = 'none';
-          settingsNavItem.title = 'Super Admin privilege required';
-        }
+      if (ticketsTitle) ticketsTitle.textContent = 'Tickets Command Center';
+      if (ticketsSubtitle) ticketsSubtitle.textContent = 'Live multi-channel queue triage, split-screen resolution, and Telegram synchronization.';
+      if (filterDeptGroup) filterDeptGroup.style.display = 'flex';
 
-        // Hide delete ticket button
-        if (deleteTicketBtn) {
-          deleteTicketBtn.style.display = 'none';
-        }
-      }
+      if (deleteTicketBtn) deleteTicketBtn.style.display = 'inline-flex';
+      if (splitDeleteTicketBtn) splitDeleteTicketBtn.style.display = 'inline-flex';
+      if (splitQuickResolveBtn) splitQuickResolveBtn.style.display = 'inline-flex';
+      if (splitTabInternal) splitTabInternal.style.display = 'flex';
     }
 
     // Refresh tickets and KPIs with role-scoped filters

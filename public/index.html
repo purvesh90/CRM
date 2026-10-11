@@ -233,20 +233,20 @@
 
           <div class="kpi-card-clean">
             <div class="kpi-card-top">
-              <span class="kpi-clean-label">Telegram Channels</span>
-              <div class="kpi-clean-icon bg-cyan-soft"><i data-lucide="send"></i></div>
+              <span class="kpi-clean-label">SLA Compliance</span>
+              <div class="kpi-clean-icon bg-emerald-soft"><i data-lucide="shield-check"></i></div>
             </div>
-            <div class="kpi-clean-val" id="kpiTelegramTickets">0</div>
-            <div class="kpi-clean-sub text-cyan">● 2-Way Bot Connected</div>
+            <div class="kpi-clean-val text-emerald" id="kpiSlaRate">98.4%</div>
+            <div class="kpi-clean-sub text-muted" id="kpiSlaBreachText">0 Breaches detected</div>
           </div>
 
           <div class="kpi-card-clean">
             <div class="kpi-card-top">
-              <span class="kpi-clean-label">Resolved Today</span>
-              <div class="kpi-clean-icon bg-emerald-soft"><i data-lucide="check-circle-2"></i></div>
+              <span class="kpi-clean-label">Resolution Speed</span>
+              <div class="kpi-clean-icon bg-cyan-soft"><i data-lucide="timer"></i></div>
             </div>
-            <div class="kpi-clean-val" id="kpiResolvedTickets">0</div>
-            <div class="kpi-clean-sub text-emerald" id="kpiAvgHours">Avg. 2.1 hrs resolution</div>
+            <div class="kpi-clean-val" id="kpiAvgHours">2.1 hrs</div>
+            <div class="kpi-clean-sub text-cyan" id="kpiFirstResponseSub">First Reply: ~24 mins</div>
           </div>
 
           <div class="kpi-card-clean">
@@ -254,8 +254,42 @@
               <span class="kpi-clean-label">CSAT Satisfaction</span>
               <div class="kpi-clean-icon bg-amber-soft"><i data-lucide="star"></i></div>
             </div>
-            <div class="kpi-clean-val" id="kpiCsatScore">98.4%</div>
-            <div class="kpi-clean-sub text-success">★ Excellent Customer Score</div>
+            <div class="kpi-clean-val text-amber" id="kpiCsatScore">4.8 / 5.0</div>
+            <div class="kpi-clean-sub text-success">★ Verified Customer Reviews</div>
+          </div>
+        </div>
+
+        <!-- Multi-Period Trajectory: Today vs Week vs Month -->
+        <div class="period-stats-strip">
+          <div class="period-stat-card">
+            <div class="period-stat-header">
+              <i data-lucide="calendar"></i>
+              <span>TODAY</span>
+            </div>
+            <div class="period-stat-nums">
+              <strong id="periodTodayResolved" class="text-emerald">0 Solved</strong>
+              <span class="text-muted" id="periodTodayCreated">0 Influx</span>
+            </div>
+          </div>
+          <div class="period-stat-card">
+            <div class="period-stat-header">
+              <i data-lucide="calendar-days"></i>
+              <span>THIS WEEK</span>
+            </div>
+            <div class="period-stat-nums">
+              <strong id="periodWeekResolved" class="text-emerald">0 Solved</strong>
+              <span class="text-muted" id="periodWeekCreated">0 Influx</span>
+            </div>
+          </div>
+          <div class="period-stat-card">
+            <div class="period-stat-header">
+              <i data-lucide="calendar-range"></i>
+              <span>THIS MONTH</span>
+            </div>
+            <div class="period-stat-nums">
+              <strong id="periodMonthResolved" class="text-emerald">0 Solved</strong>
+              <span class="text-muted" id="periodMonthCreated">0 Influx</span>
+            </div>
           </div>
         </div>
 
@@ -314,6 +348,41 @@
           </div>
           <div class="dash-card-body-clean chart-container-large">
             <canvas id="dashboardOverviewChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Team Workload & CSAT Star Distribution -->
+        <div class="dash-columns-spacious mt-6">
+          <!-- Workload & Performance per Agent -->
+          <div class="dash-section-card">
+            <div class="dash-card-header-clean">
+              <div class="dash-card-title-clean">
+                <i data-lucide="users" class="text-indigo"></i>
+                <div>
+                  <h3>Specialist Workload &amp; Capacity</h3>
+                  <p>Active triage queues vs resolved tickets per agent</p>
+                </div>
+              </div>
+            </div>
+            <div class="dash-card-body-clean" id="agentWorkloadList">
+              <!-- Rendered dynamically -->
+            </div>
+          </div>
+
+          <!-- CSAT Rating Distribution -->
+          <div class="dash-section-card">
+            <div class="dash-card-header-clean">
+              <div class="dash-card-title-clean">
+                <i data-lucide="star" class="text-amber"></i>
+                <div>
+                  <h3>Customer Satisfaction Distribution</h3>
+                  <p>Aggregated rating sentiment across Telegram and Portal</p>
+                </div>
+              </div>
+            </div>
+            <div class="dash-card-body-clean" id="csatDistributionList">
+              <!-- Rendered dynamically -->
+            </div>
           </div>
         </div>
       </section>
@@ -450,14 +519,26 @@
                 <div class="thread-title-area">
                   <span class="ticket-badge-id" id="splitTicketBadgeId">PD-1001</span>
                   <h2 class="thread-ticket-title" id="splitTicketTitle">Ticket Title</h2>
-                  <span class="priority-badge" id="splitTicketPriorityBadge">MEDIUM</span>
+                  <div class="thread-status-badges">
+                    <span class="priority-badge" id="splitTicketPriorityBadge">MEDIUM</span>
+                    <span class="sla-pill" id="splitTicketSlaBadge"><i data-lucide="timer"></i> SLA Active</span>
+                    <span class="escalation-pill hidden" id="splitTicketEscalatedBadge"><i data-lucide="flame"></i> ESCALATED</span>
+                  </div>
                 </div>
                 <div class="thread-actions">
-                  <button class="btn-secondary" id="splitQuickResolveBtn" title="Mark Resolved">
+                  <button class="btn-secondary" id="splitQuickResolveBtn" title="Mark Ticket Resolved">
                     <i data-lucide="check-circle-2" class="text-emerald"></i>
                     <span>Resolve</span>
                   </button>
-                  <button class="btn-secondary btn-icon-only text-rose" id="splitDeleteTicketBtn" title="Delete Ticket">
+                  <button class="btn-secondary" id="splitQuickCloseBtn" title="Close Ticket">
+                    <i data-lucide="check-square" class="text-cyan"></i>
+                    <span>Close</span>
+                  </button>
+                  <button class="btn-secondary hidden" id="splitQuickReopenBtn" title="Reopen Ticket">
+                    <i data-lucide="rotate-ccw" class="text-amber"></i>
+                    <span>Reopen</span>
+                  </button>
+                  <button class="btn-secondary btn-icon-only text-rose" id="splitDeleteTicketBtn" title="Archive / Soft Delete Ticket">
                     <i data-lucide="trash-2"></i>
                   </button>
                 </div>
@@ -478,38 +559,82 @@
                 </div>
               </div>
 
+              <!-- CSAT Rating Banner (Appears when resolved/closed) -->
+              <div class="csat-banner hidden" id="splitCsatBanner">
+                <div class="csat-banner-left">
+                  <span class="csat-label"><i data-lucide="star"></i> Customer Satisfaction (CSAT):</span>
+                  <span class="csat-status-text" id="splitCsatText">How satisfied were you with this resolution?</span>
+                </div>
+                <div class="csat-stars-row" id="splitCsatStars">
+                  <button type="button" class="csat-star-btn" data-rating="1" title="1 Star - Poor">⭐</button>
+                  <button type="button" class="csat-star-btn" data-rating="2" title="2 Stars - Fair">⭐</button>
+                  <button type="button" class="csat-star-btn" data-rating="3" title="3 Stars - Average">⭐</button>
+                  <button type="button" class="csat-star-btn" data-rating="4" title="4 Stars - Good">⭐</button>
+                  <button type="button" class="csat-star-btn" data-rating="5" title="5 Stars - Excellent">⭐</button>
+                </div>
+              </div>
+
+              <!-- Stream Mode Tabs: Conversation vs Complete Audit Trail -->
+              <div class="stream-mode-tabs">
+                <button type="button" class="stream-tab active" id="btnStreamMessages">
+                  <i data-lucide="message-square"></i>
+                  <span id="tabMessagesCount">Conversation Stream</span>
+                </button>
+                <button type="button" class="stream-tab" id="btnStreamAudit">
+                  <i data-lucide="history"></i>
+                  <span id="tabAuditCount">Audit Trail (History)</span>
+                </button>
+              </div>
+
               <!-- Messages Stream -->
               <div class="thread-messages-stream" id="splitMessagesStream">
+                <!-- Rendered dynamically -->
+              </div>
+
+              <!-- Audit Trail Stream (State Machine & History Log) -->
+              <div class="thread-audit-stream hidden" id="splitAuditStream">
                 <!-- Rendered dynamically -->
               </div>
 
               <!-- Canned Responses Quick Bar -->
               <div class="canned-responses-bar">
                 <span class="canned-label"><i data-lucide="zap"></i> Quick:</span>
-                <button class="canned-btn" data-reply="Hi! We have investigated the issue and deployed an index update. Could you please test now?">Fix Deployed</button>
-                <button class="canned-btn" data-reply="Thank you for reaching out. Our engineering team is currently investigating your inquiry.">Investigating</button>
-                <button class="canned-btn" data-reply="Could you please provide the exact error logs or request payload?">Request Logs</button>
-                <button class="canned-btn" data-reply="The issue has been verified and fully resolved. Marking this ticket as completed.">Resolution Confirmed</button>
+                <button type="button" class="canned-btn" data-reply="Hi! We have investigated the issue and deployed an index update. Could you please test now?">Fix Deployed</button>
+                <button type="button" class="canned-btn" data-reply="Thank you for reaching out. Our engineering team is currently investigating your inquiry.">Investigating</button>
+                <button type="button" class="canned-btn" data-reply="Could you please provide the exact error logs or request payload?">Request Logs</button>
+                <button type="button" class="canned-btn" data-reply="The issue has been verified and fully resolved. Marking this ticket as completed.">Resolution Confirmed</button>
               </div>
 
               <!-- Reply Composer -->
               <div class="thread-composer-box">
                 <div class="composer-tabs">
-                  <button class="composer-tab active" id="splitTabCustomer">
+                  <button type="button" class="composer-tab active" id="splitTabCustomer">
                     <i data-lucide="message-circle"></i>
                     <span id="splitReplyTabLabel">Reply to Customer (Syncs Live)</span>
                   </button>
-                  <button class="composer-tab" id="splitTabInternal">
+                  <button type="button" class="composer-tab" id="splitTabInternal">
                     <i data-lucide="lock"></i>
-                    <span>Internal Staff Note</span>
+                    <span>Internal Staff Note (Private)</span>
                   </button>
                 </div>
                 <form id="splitComposerForm">
                   <textarea id="splitComposerInput" class="composer-textarea" rows="2" placeholder="Type your response... (Telegram customer receives it instantly)"></textarea>
+                  
                   <div class="composer-footer">
-                    <div class="composer-tip">
-                      <i data-lucide="info"></i>
-                      <span id="splitSyncNotice">Live 2-way Telegram sync active</span>
+                    <div class="composer-left-actions">
+                      <label class="btn-secondary btn-icon-only composer-attach-btn" title="Attach screenshot or file">
+                        <i data-lucide="paperclip"></i>
+                        <input type="file" id="splitAttachmentInput" style="display:none;" accept="image/*,.pdf,.txt,.log,.json">
+                      </label>
+                      <div id="splitAttachmentPreview" class="attachment-preview-tag hidden">
+                        <i data-lucide="file"></i>
+                        <span id="splitAttachmentName">file.png</span>
+                        <button type="button" id="splitRemoveAttachmentBtn" class="attach-remove-btn">&times;</button>
+                      </div>
+                      <div class="composer-tip">
+                        <i data-lucide="info"></i>
+                        <span id="splitSyncNotice">Live 2-way Telegram sync active</span>
+                      </div>
                     </div>
                     <button type="submit" class="btn-primary" id="splitSendReplyBtn">
                       <i data-lucide="send"></i>
@@ -542,6 +667,19 @@
               <div class="meta-row">
                 <span>Telegram Chat:</span>
                 <strong id="split360Telegram">Encrypted (Active)</strong>
+              </div>
+              <div class="mt-3">
+                <button type="button" class="btn-secondary btn-sm w-full" id="splitLinkTelegramBtn">
+                  <i data-lucide="link"></i>
+                  <span>Generate Telegram Link</span>
+                </button>
+                <div id="splitTelegramLinkDisplay" class="telegram-token-box hidden mt-2">
+                  <div class="text-xs text-muted mb-1">One-time verified link:</div>
+                  <a id="splitTelegramLinkAnchor" href="#" target="_blank" class="token-link-btn">
+                    <i data-lucide="send"></i>
+                    <span>Connect in Telegram</span>
+                  </a>
+                </div>
               </div>
             </div>
 

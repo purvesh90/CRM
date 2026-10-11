@@ -2,10 +2,13 @@
 const TicketsModule = {
   tickets: [],
   currentTicketId: null,
+  currentTicket: null,
   activeReplyMode: 'CUSTOMER', // 'CUSTOMER' or 'INTERNAL'
   splitReplyMode: 'CUSTOMER',  // 'CUSTOMER' or 'INTERNAL'
   currentView: 'SPLIT',        // 'SPLIT', 'KANBAN', or 'LIST'
   inboxSubfilter: 'ALL',       // 'ALL', 'OPEN', 'URGENT', 'TELEGRAM'
+  streamMode: 'MESSAGES',      // 'MESSAGES' or 'AUDIT'
+  pendingAttachment: null,
 
   init() {
     this.bindEvents();
@@ -80,6 +83,36 @@ const TicketsModule = {
       splitTabInt.addEventListener('click', () => this.setSplitReplyMode('INTERNAL'));
     }
 
+    // Split Desk: Stream Mode Tabs (Conversation Stream vs Audit Trail)
+    const btnStreamMessages = document.getElementById('btnStreamMessages');
+    const btnStreamAudit = document.getElementById('btnStreamAudit');
+    if (btnStreamMessages) btnStreamMessages.addEventListener('click', () => this.switchStreamMode('MESSAGES'));
+    if (btnStreamAudit) btnStreamAudit.addEventListener('click', () => this.switchStreamMode('AUDIT'));
+
+    // CSAT Star buttons
+    document.querySelectorAll('#splitCsatStars .csat-star-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const rating = parseInt(btn.getAttribute('data-rating'), 10);
+        if (rating) this.handleRateCSAT(rating);
+      });
+    });
+
+    // Attachment input & remove
+    const attachInput = document.getElementById('splitAttachmentInput');
+    const removeAttachBtn = document.getElementById('splitRemoveAttachmentBtn');
+    if (attachInput) {
+      attachInput.addEventListener('change', (e) => this.handleAttachmentSelected(e));
+    }
+    if (removeAttachBtn) {
+      removeAttachBtn.addEventListener('click', () => this.clearAttachment());
+    }
+
+    // Telegram One-time link button
+    const tgLinkBtn = document.getElementById('splitLinkTelegramBtn');
+    if (tgLinkBtn) {
+      tgLinkBtn.addEventListener('click', () => this.handleGenerateTelegramLink());
+    }
+
     // Split Desk: Reply Form Submit
     const splitForm = document.getElementById('splitComposerForm');
     if (splitForm) {
@@ -90,6 +123,18 @@ const TicketsModule = {
     const splitResolveBtn = document.getElementById('splitQuickResolveBtn');
     if (splitResolveBtn) {
       splitResolveBtn.addEventListener('click', () => this.handleSplitQuickResolve());
+    }
+
+    // Split Desk: Quick Close Button
+    const splitCloseBtn = document.getElementById('splitQuickCloseBtn');
+    if (splitCloseBtn) {
+      splitCloseBtn.addEventListener('click', () => this.handleSplitQuickClose());
+    }
+
+    // Split Desk: Quick Reopen Button
+    const splitReopenBtn = document.getElementById('splitQuickReopenBtn');
+    if (splitReopenBtn) {
+      splitReopenBtn.addEventListener('click', () => this.handleSplitQuickReopen());
     }
 
     // Split Desk: Delete Ticket Button
@@ -317,6 +362,21 @@ const TicketsModule = {
 
       const timeAgo = this.formatTimeAgo(t.updatedAt || t.createdAt);
 
+      // Senior Feature: SLA indicator on queue cards
+      let slaIndicator = '';
+      if (t.sla) {
+        if (t.sla.isBreached) {
+          slaIndicator = `<span class="inbox-sla-badge sla-breached" title="Resolution SLA Overdue"><i data-lucide="alert-triangle"></i> OVERDUE</span>`;
+        } else if (t.sla.isResolved) {
+          slaIndicator = `<span class="inbox-sla-badge sla-resolved" title="SLA Criteria Met"><i data-lucide="check"></i> SLA Met</span>`;
+        } else {
+          slaIndicator = `<span class="inbox-sla-badge sla-active" title="SLA Countdown: ${t.sla.resolutionRemainingText || 'Active'}"><i data-lucide="clock"></i> ${t.sla.resolutionRemainingText || 'SLA Active'}</span>`;
+        }
+      }
+
+      // Senior Feature: Auto-escalation flag
+      const escBadge = t.escalated ? `<span class="inbox-escalated-badge" title="Auto-escalated to supervisor"><i data-lucide="flame"></i> Escalated</span>` : '';
+
       return `
         <div class="inbox-ticket-item ${isActive ? 'active' : ''}" data-ticket-id="${t.id}" onclick="TicketsModule.selectSplitTicket('${t.id}')">
           <div class="inbox-ticket-top">
@@ -326,7 +386,11 @@ const TicketsModule = {
           <div class="inbox-ticket-subject">${this.escapeHtml(t.title)}</div>
           <div class="inbox-ticket-snippet">${this.escapeHtml(t.description || 'No description provided.')}</div>
           <div class="inbox-ticket-footer">
-            <span class="priority-badge priority-${t.priority}">${t.priority}</span>
+            <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+              <span class="priority-badge priority-${t.priority}">${t.priority}</span>
+              ${slaIndicator}
+              ${escBadge}
+            </div>
             <div style="display:flex;align-items:center;gap:6px;">
               <span class="inbox-customer-tag">${this.escapeHtml(t.customerName)}</span>
               ${channelBadge}
@@ -366,10 +430,13 @@ const TicketsModule = {
     if (detailsPane) detailsPane.classList.remove('hidden');
 
     try {
-      const res = await fetch(`/api/tickets/${ticketId}`);
+      const headers = window.AuthModule ? AuthModule.getAuthHeaders() : {};
+      const res = await fetch(`/api/tickets/${ticketId}`, { headers });
       const data = await res.json();
       if (data.success && data.ticket) {
         this.populateSplitTicket(data.ticket);
+      } else {
+        App.showToast(data.error || 'Failed to load ticket stream', 'error');
       }
     } catch (err) {
       App.showToast('Failed to load ticket stream', 'error');
@@ -377,6 +444,8 @@ const TicketsModule = {
   },
 
   populateSplitTicket(ticket) {
+    this.currentTicket = ticket;
+
     // Header
     const badgeId = document.getElementById('splitTicketBadgeId');
     const title = document.getElementById('splitTicketTitle');
@@ -386,6 +455,30 @@ const TicketsModule = {
     if (priorityBadge) {
       priorityBadge.textContent = ticket.priority;
       priorityBadge.className = `priority-badge priority-${ticket.priority}`;
+    }
+
+    // SLA & Escalation Badges in Header
+    const slaBadge = document.getElementById('splitTicketSlaBadge');
+    const escBadge = document.getElementById('splitTicketEscalatedBadge');
+    if (slaBadge) {
+      if (ticket.sla) {
+        if (ticket.sla.isBreached) {
+          slaBadge.className = 'sla-pill sla-breached';
+          slaBadge.innerHTML = `<i data-lucide="alert-triangle"></i> <span>OVERDUE (${ticket.sla.resolutionRemainingText || 'Breached'})</span>`;
+        } else if (ticket.sla.isResolved) {
+          slaBadge.className = 'sla-pill sla-resolved';
+          slaBadge.innerHTML = `<i data-lucide="check-circle-2"></i> <span>SLA Met</span>`;
+        } else {
+          slaBadge.className = 'sla-pill sla-active';
+          slaBadge.innerHTML = `<i data-lucide="clock"></i> <span>SLA: ${ticket.sla.resolutionRemainingText || 'Active'}</span>`;
+        }
+        slaBadge.classList.remove('hidden');
+      } else {
+        slaBadge.classList.add('hidden');
+      }
+    }
+    if (escBadge) {
+      escBadge.classList.toggle('hidden', !ticket.escalated);
     }
 
     // Customer strip
@@ -416,8 +509,83 @@ const TicketsModule = {
       }
     }
 
-    // Messages Stream
+    // CSAT Banner: Visible upon resolution / closure
+    const csatBanner = document.getElementById('splitCsatBanner');
+    const csatText = document.getElementById('splitCsatText');
+    const csatStars = document.querySelectorAll('#splitCsatStars .csat-star-btn');
+    if (csatBanner) {
+      const isResolvedOrClosed = ticket.status === 'RESOLVED' || ticket.status === 'CLOSED';
+      if (isResolvedOrClosed) {
+        csatBanner.classList.remove('hidden');
+        if (ticket.csat && ticket.csat.rating) {
+          if (csatText) csatText.textContent = `Customer rating: ${ticket.csat.rating}/5 ⭐ (${ticket.csat.comment || 'Verified'})`;
+          csatStars.forEach(btn => {
+            const r = parseInt(btn.getAttribute('data-rating'), 10);
+            btn.classList.toggle('active-star', r <= ticket.csat.rating);
+            btn.disabled = true;
+          });
+        } else {
+          if (csatText) csatText.textContent = 'Ticket resolved! How satisfied are you with this resolution?';
+          csatStars.forEach(btn => {
+            btn.classList.remove('active-star');
+            btn.disabled = false;
+          });
+        }
+      } else {
+        csatBanner.classList.add('hidden');
+      }
+    }
+
+    // Action buttons: Resolve, Close, Reopen, and Delete
+    const currentUser = window.AuthModule?.currentUser;
+    const isCustomer = currentUser && currentUser.role === 'CUSTOMER';
+    const isAdmin = !currentUser || currentUser.role === 'SUPER_ADMIN';
+
+    const splitResolveBtn = document.getElementById('splitQuickResolveBtn');
+    const splitCloseBtn = document.getElementById('splitQuickCloseBtn');
+    const splitReopenBtn = document.getElementById('splitQuickReopenBtn');
+    const splitDeleteBtn = document.getElementById('splitDeleteTicketBtn');
+
+    const isResolved = ticket.status === 'RESOLVED';
+    const isClosed = ticket.status === 'CLOSED';
+    const isResolvedOrClosed = isResolved || isClosed;
+
+    if (splitResolveBtn) {
+      splitResolveBtn.classList.toggle('hidden', isCustomer || isResolvedOrClosed);
+    }
+    if (splitCloseBtn) {
+      splitCloseBtn.classList.toggle('hidden', isCustomer || isClosed);
+    }
+    if (splitReopenBtn) {
+      splitReopenBtn.classList.toggle('hidden', isCustomer || !isResolvedOrClosed);
+    }
+    if (splitDeleteBtn) {
+      splitDeleteBtn.classList.toggle('hidden', !isAdmin);
+    }
+
+    // Role-based authorization for private Internal Notes tab
+    const splitTabInternal = document.getElementById('splitTabInternal');
+    if (splitTabInternal) {
+      if (isCustomer) {
+        splitTabInternal.classList.add('hidden');
+        this.setSplitReplyMode('CUSTOMER');
+      } else {
+        splitTabInternal.classList.remove('hidden');
+      }
+    }
+
+    // Render Conversation Stream & Audit Trail Stream
     this.renderSplitMessages(ticket.messages || []);
+    this.renderSplitAuditLog(ticket.auditLog || []);
+
+    // Update tab counters
+    const tabMsgCount = document.getElementById('tabMessagesCount');
+    const tabAudCount = document.getElementById('tabAuditCount');
+    if (tabMsgCount) tabMsgCount.textContent = `Conversation (${(ticket.messages || []).length})`;
+    if (tabAudCount) tabAudCount.textContent = `Audit Trail (${(ticket.auditLog || []).length})`;
+
+    // Reset stream tab view to Conversation Stream
+    this.switchStreamMode('MESSAGES');
 
     // Right Details Pane: Customer 360
     const card360Avatar = document.getElementById('split360Avatar');
@@ -434,6 +602,13 @@ const TicketsModule = {
       card360Telegram.textContent = ticket.telegramChatId ? `Encrypted (***${String(ticket.telegramChatId).slice(-4)})` : 'Not connected';
     }
 
+    // Reset Telegram link generator button/display
+    const linkDisplay = document.getElementById('splitTelegramLinkDisplay');
+    if (linkDisplay) linkDisplay.classList.add('hidden');
+
+    // Clear any previous attachment
+    this.clearAttachment();
+
     // Properties dropdowns
     const statusSelect = document.getElementById('splitStatusSelect');
     const prioritySelect = document.getElementById('splitPrioritySelect');
@@ -445,7 +620,12 @@ const TicketsModule = {
     if (agentSelect) agentSelect.value = ticket.assignedTo || 'Sarah Connor';
     if (deptSelect) deptSelect.value = ticket.department || 'Technical Support';
 
-    // Audit Timeline
+    // If customer role, prevent direct property alterations
+    [statusSelect, prioritySelect, agentSelect, deptSelect].forEach(sel => {
+      if (sel) sel.disabled = isCustomer;
+    });
+
+    // Audit Timeline timestamps
     const createdEl = document.getElementById('splitTimelineCreated');
     const updatedEl = document.getElementById('splitTimelineUpdated');
     if (createdEl) createdEl.textContent = new Date(ticket.createdAt).toLocaleString();
@@ -461,7 +641,7 @@ const TicketsModule = {
     const syncNotice = document.getElementById('splitSyncNotice');
     if (syncNotice) {
       if (ticket.channel === 'TELEGRAM' && ticket.telegramChatId) {
-        syncNotice.textContent = 'Reply will be sent instantly to customer Telegram chat';
+        syncNotice.textContent = 'Reply dispatches directly to customer Telegram chat';
       } else {
         syncNotice.textContent = 'Reply will be published to customer web portal';
       }
@@ -501,6 +681,31 @@ const TicketsModule = {
 
       const timeStr = new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
+      // Render attached files/screenshots
+      let attachmentsHtml = '';
+      if (msg.attachments && msg.attachments.length > 0) {
+        attachmentsHtml = `
+          <div class="msg-attachments-wrap">
+            ${msg.attachments.map(att => {
+              const isImg = att.type && att.type.startsWith('image/');
+              if (isImg && att.dataUrl) {
+                return `
+                  <a href="${att.dataUrl}" target="_blank" class="msg-attachment-img-preview" title="${this.escapeHtml(att.name)}">
+                    <img src="${att.dataUrl}" alt="${this.escapeHtml(att.name)}" style="max-height:120px;border-radius:6px;margin-top:6px;display:block;border:1px solid rgba(255,255,255,0.15);">
+                  </a>
+                `;
+              }
+              return `
+                <a href="${att.dataUrl || '#'}" download="${this.escapeHtml(att.name)}" class="msg-attachment-download-chip">
+                  <i data-lucide="paperclip"></i>
+                  <span>${this.escapeHtml(att.name)}</span>
+                </a>
+              `;
+            }).join('')}
+          </div>
+        `;
+      }
+
       return `
         <div class="msg-row ${rowClass}">
           <div class="msg-bubble">
@@ -509,6 +714,7 @@ const TicketsModule = {
               ${this.escapeHtml(msg.senderName)}
             </div>
             <div>${this.escapeHtml(msg.text).replace(/\n/g, '<br>')}</div>
+            ${attachmentsHtml}
           </div>
           <div class="msg-meta-row">
             <span>${timeStr}</span>
@@ -520,6 +726,207 @@ const TicketsModule = {
 
     stream.scrollTop = stream.scrollHeight;
     lucide.createIcons();
+  },
+
+  renderSplitAuditLog(auditLog) {
+    const stream = document.getElementById('splitAuditStream');
+    if (!stream) return;
+
+    if (!auditLog || auditLog.length === 0) {
+      stream.innerHTML = `
+        <div style="text-align:center;padding:32px 16px;color:var(--text-muted);font-size:0.8rem;">
+          <i data-lucide="history" style="width:28px;height:28px;margin-bottom:8px;opacity:0.5;"></i>
+          <p>No audit trail recorded yet for this ticket.</p>
+        </div>
+      `;
+      lucide.createIcons();
+      return;
+    }
+
+    stream.innerHTML = auditLog.map(event => {
+      let icon = 'activity';
+      let badgeClass = 'badge-system';
+
+      if (event.action === 'TICKET_CREATED') {
+        icon = 'sparkles';
+        badgeClass = 'badge-created';
+      } else if (event.action === 'STATUS_CHANGE') {
+        icon = 'refresh-cw';
+        badgeClass = 'badge-status';
+      } else if (event.action === 'ESCALATED' || event.action === 'SLA_BREACH') {
+        icon = 'alert-triangle';
+        badgeClass = 'badge-breach';
+      } else if (event.action === 'MESSAGE_SENT') {
+        icon = event.details?.isInternal ? 'lock' : 'message-square';
+        badgeClass = event.details?.isInternal ? 'badge-internal' : 'badge-message';
+      } else if (event.action === 'CSAT_RATING') {
+        icon = 'star';
+        badgeClass = 'badge-csat';
+      } else if (event.action === 'ASSIGNMENT_CHANGE') {
+        icon = 'user-check';
+        badgeClass = 'badge-assignment';
+      }
+
+      const timeStr = new Date(event.timestamp).toLocaleString();
+      let detailsHtml = '';
+      if (event.details) {
+        if (event.action === 'STATUS_CHANGE') {
+          detailsHtml = `<div class="audit-detail-diff">State changed from <strong>${event.details.from}</strong> &rarr; <strong class="text-primary">${event.details.to}</strong></div>`;
+        } else if (event.action === 'CSAT_RATING') {
+          detailsHtml = `<div class="audit-detail-diff">Received <strong>${event.details.rating}/5 ⭐</strong> rating: "${this.escapeHtml(event.details.comment || '')}"</div>`;
+        } else if (event.action === 'MESSAGE_SENT') {
+          const typeStr = event.details.isInternal ? 'Internal staff note' : 'Public response';
+          detailsHtml = `<div class="audit-detail-diff">${typeStr} (${event.details.textLength || 0} characters)</div>`;
+        } else if (event.action === 'ASSIGNMENT_CHANGE') {
+          detailsHtml = `<div class="audit-detail-diff">Assigned to: <strong>${event.details.assignedTo}</strong> (${event.details.department})</div>`;
+        }
+      }
+
+      return `
+        <div class="audit-event-item">
+          <div class="audit-event-left">
+            <div class="audit-icon-wrap ${badgeClass}">
+              <i data-lucide="${icon}"></i>
+            </div>
+            <div class="audit-timeline-line"></div>
+          </div>
+          <div class="audit-event-content">
+            <div class="audit-event-header">
+              <span class="audit-action-name">${this.escapeHtml(event.action.replace(/_/g, ' '))}</span>
+              <span class="audit-actor-badge">${this.escapeHtml(event.actor || 'System')} [${this.escapeHtml(event.role || 'CORE')}]</span>
+              <span class="audit-time">${timeStr}</span>
+            </div>
+            ${detailsHtml}
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    lucide.createIcons();
+  },
+
+  switchStreamMode(mode) {
+    this.streamMode = mode;
+    const btnMsg = document.getElementById('btnStreamMessages');
+    const btnAud = document.getElementById('btnStreamAudit');
+    const msgStream = document.getElementById('splitMessagesStream');
+    const audStream = document.getElementById('splitAuditStream');
+
+    if (mode === 'MESSAGES') {
+      if (btnMsg) btnMsg.classList.add('active');
+      if (btnAud) btnAud.classList.remove('active');
+      if (msgStream) msgStream.classList.remove('hidden');
+      if (audStream) audStream.classList.add('hidden');
+    } else {
+      if (btnMsg) btnMsg.classList.remove('active');
+      if (btnAud) btnAud.classList.add('active');
+      if (msgStream) msgStream.classList.add('hidden');
+      if (audStream) audStream.classList.remove('hidden');
+    }
+  },
+
+  handleAttachmentSelected(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      App.showToast('Attachment exceeds 5MB limit', 'error');
+      e.target.value = '';
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (uploadEvent) => {
+      this.pendingAttachment = {
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        dataUrl: uploadEvent.target.result
+      };
+
+      const previewTag = document.getElementById('splitAttachmentPreview');
+      const nameEl = document.getElementById('splitAttachmentName');
+      if (previewTag && nameEl) {
+        nameEl.textContent = file.name;
+        previewTag.classList.remove('hidden');
+      }
+    };
+    reader.readAsDataURL(file);
+  },
+
+  clearAttachment() {
+    this.pendingAttachment = null;
+    const input = document.getElementById('splitAttachmentInput');
+    const previewTag = document.getElementById('splitAttachmentPreview');
+    if (input) input.value = '';
+    if (previewTag) previewTag.classList.add('hidden');
+  },
+
+  async handleRateCSAT(rating) {
+    if (!this.currentTicketId) return;
+
+    try {
+      const headers = {
+        'Content-Type': 'application/json',
+        ...(window.AuthModule ? AuthModule.getAuthHeaders() : {})
+      };
+
+      const res = await fetch(`/api/tickets/${this.currentTicketId}/csat`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          rating,
+          comment: `Rated ${rating}/5 stars from customer dashboard`
+        })
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        App.showToast(`Thank you! Rated ${rating}/5 ⭐ successfully`, 'success');
+        await this.selectSplitTicket(this.currentTicketId);
+        this.loadTickets();
+      } else {
+        App.showToast(data.error || 'Failed to submit CSAT rating', 'error');
+      }
+    } catch (err) {
+      App.showToast('Error submitting CSAT rating', 'error');
+    }
+  },
+
+  async handleGenerateTelegramLink() {
+    if (!this.currentTicket) return;
+
+    try {
+      const headers = {
+        'Content-Type': 'application/json',
+        ...(window.AuthModule ? AuthModule.getAuthHeaders() : {})
+      };
+
+      const res = await fetch('/api/telegram/link-token', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          customerId: this.currentTicket.customerId || this.currentTicket.customerEmail
+        })
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        const linkDisplay = document.getElementById('splitTelegramLinkDisplay');
+        const linkAnchor = document.getElementById('splitTelegramLinkAnchor');
+        if (linkDisplay && linkAnchor) {
+          linkAnchor.href = data.link;
+          linkAnchor.innerHTML = `<i data-lucide="send"></i> <span>Open Bot with Verification Link</span>`;
+          linkDisplay.classList.remove('hidden');
+          lucide.createIcons();
+          App.showToast('One-time secure Telegram linking token generated!', 'success');
+        }
+      } else {
+        App.showToast(data.error || 'Failed to generate linking token', 'error');
+      }
+    } catch (err) {
+      App.showToast('Error requesting Telegram link', 'error');
+    }
   },
 
   setSplitReplyMode(mode) {
@@ -545,30 +952,45 @@ const TicketsModule = {
 
     const input = document.getElementById('splitComposerInput');
     const text = input ? input.value.trim() : '';
-    if (!text) return;
+    if (!text && !this.pendingAttachment) return;
 
     const isInternal = this.splitReplyMode === 'INTERNAL';
-    const senderName = document.getElementById('splitAgentSelect')?.value || 'Sarah Connor';
+    const currentUser = window.AuthModule?.currentUser;
+    const sender = (currentUser && currentUser.role === 'CUSTOMER') ? 'CUSTOMER' : 'AGENT';
+    const senderName = currentUser ? currentUser.name : (document.getElementById('splitAgentSelect')?.value || 'Support Agent');
+
+    const attachments = this.pendingAttachment ? [this.pendingAttachment] : [];
 
     try {
+      const headers = {
+        'Content-Type': 'application/json',
+        ...(window.AuthModule ? AuthModule.getAuthHeaders() : {})
+      };
+
       const res = await fetch(`/api/tickets/${this.currentTicketId}/messages`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({
-          text,
-          sender: 'AGENT',
+          text: text || (attachments.length ? `[Attached file: ${attachments[0].name}]` : ''),
+          sender,
           senderName,
-          isInternal
+          isInternal,
+          attachments
         })
       });
 
       const data = await res.json();
       if (data.success) {
-        input.value = '';
-        App.showToast(isInternal ? 'Internal staff note added' : 'Message dispatched to Telegram customer!', 'success');
-        this.selectSplitTicket(this.currentTicketId);
+        if (input) input.value = '';
+        this.clearAttachment();
+        App.showToast(isInternal ? 'Internal staff note added' : 'Message dispatched to customer & Telegram!', 'success');
+        await this.selectSplitTicket(this.currentTicketId);
         this.loadTickets();
-        TelegramModule.loadLogs();
+        if (window.TelegramModule && typeof TelegramModule.loadLogs === 'function') {
+          TelegramModule.loadLogs();
+        }
+      } else {
+        App.showToast(data.error || 'Failed to dispatch reply', 'error');
       }
     } catch (err) {
       App.showToast('Failed to send message', 'error');
@@ -591,19 +1013,52 @@ const TicketsModule = {
     const department = document.getElementById('splitDeptSelect')?.value;
 
     try {
+      const headers = {
+        'Content-Type': 'application/json',
+        ...(window.AuthModule ? AuthModule.getAuthHeaders() : {})
+      };
+
       const res = await fetch(`/api/tickets/${this.currentTicketId}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({ status, priority, assignedTo, department })
       });
       const data = await res.json();
       if (data.success) {
         App.showToast('Ticket properties updated', 'success');
+        await this.selectSplitTicket(this.currentTicketId);
         this.loadTickets();
+      } else {
+        App.showToast(data.error || 'Invalid property transition', 'error');
+        // Revert status dropdown if invalid state transition was rejected by server state machine
+        if (this.currentTicket && document.getElementById('splitStatusSelect')) {
+          document.getElementById('splitStatusSelect').value = this.currentTicket.status;
+        }
       }
     } catch (err) {
       App.showToast('Error updating ticket properties', 'error');
     }
+  },
+
+  async handleSplitQuickResolve() {
+    if (!this.currentTicketId) return;
+    const statusSelect = document.getElementById('splitStatusSelect');
+    if (statusSelect) statusSelect.value = 'RESOLVED';
+    await this.handleSplitPropertyUpdate('splitStatusSelect');
+  },
+
+  async handleSplitQuickClose() {
+    if (!this.currentTicketId) return;
+    const statusSelect = document.getElementById('splitStatusSelect');
+    if (statusSelect) statusSelect.value = 'CLOSED';
+    await this.handleSplitPropertyUpdate('splitStatusSelect');
+  },
+
+  async handleSplitQuickReopen() {
+    if (!this.currentTicketId) return;
+    const statusSelect = document.getElementById('splitStatusSelect');
+    if (statusSelect) statusSelect.value = 'OPEN';
+    await this.handleSplitPropertyUpdate('splitStatusSelect');
   },
 
   /* ------------------------------------------------------------
@@ -1007,15 +1462,22 @@ const TicketsModule = {
     const department = document.getElementById('ticketDeptSelect').value;
 
     try {
+      const headers = {
+        'Content-Type': 'application/json',
+        ...(window.AuthModule ? AuthModule.getAuthHeaders() : {})
+      };
+
       const res = await fetch(`/api/tickets/${this.currentTicketId}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({ status, priority, assignedTo, department })
       });
       const data = await res.json();
       if (data.success) {
         App.showToast('Ticket properties updated', 'success');
         this.loadTickets();
+      } else {
+        App.showToast(data.error || 'Failed to update ticket', 'error');
       }
     } catch (err) {
       App.showToast('Error updating ticket properties', 'error');
@@ -1049,7 +1511,36 @@ const TicketsModule = {
 
   openNewTicketModal() {
     const modal = document.getElementById('newTicketModalOverlay');
-    if (modal) modal.classList.remove('hidden');
+    if (!modal) return;
+    modal.classList.remove('hidden');
+
+    const currentUser = window.AuthModule?.currentUser;
+    const isCustomer = currentUser && currentUser.role === 'CUSTOMER';
+    const nameInput = document.getElementById('newTicketCustomerName');
+    const emailInput = document.getElementById('newTicketCustomerEmail');
+    const assigneeGroup = document.getElementById('newTicketAssignee')?.closest('.form-group');
+    const channelGroup = document.getElementById('newTicketChannel')?.closest('.form-group');
+    const modalTitle = modal.querySelector('.modal-dialog-header h3');
+
+    if (isCustomer) {
+      if (nameInput) {
+        nameInput.value = currentUser.name;
+        nameInput.readOnly = true;
+      }
+      if (emailInput) {
+        emailInput.value = currentUser.email;
+        emailInput.readOnly = true;
+      }
+      if (assigneeGroup) assigneeGroup.style.display = 'none';
+      if (channelGroup) channelGroup.style.display = 'none';
+      if (modalTitle) modalTitle.textContent = 'Submit Support Request';
+    } else {
+      if (nameInput) nameInput.readOnly = false;
+      if (emailInput) emailInput.readOnly = false;
+      if (assigneeGroup) assigneeGroup.style.display = 'block';
+      if (channelGroup) channelGroup.style.display = 'block';
+      if (modalTitle) modalTitle.textContent = 'Create New Support Ticket';
+    }
   },
 
   closeNewTicketModal() {
@@ -1059,19 +1550,27 @@ const TicketsModule = {
 
   async handleCreateTicket(e) {
     e.preventDefault();
+    const currentUser = window.AuthModule?.currentUser;
+    const isCustomer = currentUser && currentUser.role === 'CUSTOMER';
+
     const title = document.getElementById('newTicketTitle').value.trim();
-    const customerName = document.getElementById('newTicketCustomerName').value.trim();
-    const customerEmail = document.getElementById('newTicketCustomerEmail').value.trim();
+    const customerName = isCustomer ? currentUser.name : document.getElementById('newTicketCustomerName').value.trim();
+    const customerEmail = isCustomer ? currentUser.email : document.getElementById('newTicketCustomerEmail').value.trim();
     const priority = document.getElementById('newTicketPriority').value;
     const department = document.getElementById('newTicketDept').value;
-    const channel = document.getElementById('newTicketChannel').value;
-    const assignedTo = document.getElementById('newTicketAssignee').value;
+    const channel = isCustomer ? 'WEB_PORTAL' : (document.getElementById('newTicketChannel')?.value || 'WEB_PORTAL');
+    const assignedTo = isCustomer ? '' : (document.getElementById('newTicketAssignee')?.value || '');
     const description = document.getElementById('newTicketDescription').value.trim();
 
     try {
+      const headers = {
+        'Content-Type': 'application/json',
+        ...(window.AuthModule ? AuthModule.getAuthHeaders() : {})
+      };
+
       const res = await fetch('/api/tickets', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({
           title,
           customerName,

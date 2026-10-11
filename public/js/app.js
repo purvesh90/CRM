@@ -146,8 +146,9 @@ const App = {
   },
 
   switchTab(tabName) {
-    if (this.isCustomerView) {
-      this.switchPortalMode(false);
+    const isCustomer = window.AuthModule?.currentUser?.role === 'CUSTOMER';
+    if (isCustomer && tabName !== 'tickets') {
+      tabName = 'tickets';
     }
 
     this.currentTab = tabName;
@@ -188,27 +189,11 @@ const App = {
 
   switchPortalMode(isCustomer) {
     this.isCustomerView = isCustomer;
-    const btnAdmin = document.getElementById('btnAdminView');
-    const btnCust = document.getElementById('btnCustomerView');
-    const sidebar = document.getElementById('appSidebar');
-    const panels = document.querySelectorAll('.tab-panel');
-    const portalContainer = document.getElementById('customerPortalContainer');
-
     if (isCustomer) {
-      btnCust.classList.add('active');
-      btnAdmin.classList.remove('active');
-      sidebar.classList.add('hidden');
-      panels.forEach(p => p.classList.add('hidden'));
-      portalContainer.classList.remove('hidden');
+      this.switchTab('tickets');
     } else {
-      btnAdmin.classList.add('active');
-      btnCust.classList.remove('active');
-      sidebar.classList.remove('hidden');
-      portalContainer.classList.add('hidden');
-      panels.forEach(p => p.classList.remove('hidden'));
-      this.switchTab(this.currentTab || 'dashboard');
+      this.switchTab('dashboard');
     }
-    lucide.createIcons();
   },
 
   async updateDashboardKPIs() {
@@ -218,15 +203,94 @@ const App = {
       const data = await res.json();
       if (data.success && data.analytics) {
         const a = data.analytics;
-        document.getElementById('kpiActiveTickets').textContent = (a.open + a.inProgress + a.waiting);
-        document.getElementById('kpiUrgentSubtext').textContent = `${a.urgent} Urgent SLA Pending`;
-        document.getElementById('kpiTelegramTickets').textContent = a.telegramCount;
-        document.getElementById('kpiResolvedTickets').textContent = a.resolved;
-        document.getElementById('kpiAvgHours').textContent = `Avg. ${a.avgResolutionHours} hrs resolution`;
-        document.getElementById('kpiCsatScore').textContent = a.csatScore;
+
+        // 1. Top 4 Executive KPI Cards
+        const kpiActive = document.getElementById('kpiActiveTickets');
+        const kpiUrgent = document.getElementById('kpiUrgentSubtext');
+        const kpiSla = document.getElementById('kpiSlaRate');
+        const kpiSlaBreach = document.getElementById('kpiSlaBreachText');
+        const kpiAvg = document.getElementById('kpiAvgHours');
+        const kpiFirst = document.getElementById('kpiFirstResponseSub');
+        const kpiCsat = document.getElementById('kpiCsatScore');
+
+        if (kpiActive) kpiActive.textContent = (a.open + a.inProgress + a.waiting);
+        if (kpiUrgent) kpiUrgent.textContent = `${a.urgent} Urgent &bull; ${a.slaBreaches || 0} Breaches`;
+        if (kpiSla) kpiSla.textContent = a.slaComplianceRate || '98.4%';
+        if (kpiSlaBreach) kpiSlaBreach.textContent = `${a.slaBreaches || 0} SLA Breaches logged`;
+        if (kpiAvg) kpiAvg.textContent = `${a.avgResolutionHours} hrs`;
+        if (kpiFirst) {
+          const firstM = Math.round((parseFloat(a.avgFirstResponseHours) || 0.4) * 60);
+          kpiFirst.textContent = `First Reply: ~${firstM} mins`;
+        }
+        if (kpiCsat) kpiCsat.textContent = a.csatScore || '4.8 / 5.0';
+
+        // 2. Multi-Period Influx & Resolution Strip
+        if (a.periods) {
+          const todayR = document.getElementById('periodTodayResolved');
+          const todayC = document.getElementById('periodTodayCreated');
+          const weekR = document.getElementById('periodWeekResolved');
+          const weekC = document.getElementById('periodWeekCreated');
+          const monthR = document.getElementById('periodMonthResolved');
+          const monthC = document.getElementById('periodMonthCreated');
+
+          if (todayR) todayR.textContent = `${a.periods.today.resolved} Solved`;
+          if (todayC) todayC.textContent = `${a.periods.today.open} Influx`;
+          if (weekR) weekR.textContent = `${a.periods.thisWeek.resolved} Solved`;
+          if (weekC) weekC.textContent = `${a.periods.thisWeek.open} Influx`;
+          if (monthR) monthR.textContent = `${a.periods.thisMonth.resolved} Solved`;
+          if (monthC) monthC.textContent = `${a.periods.thisMonth.open} Influx`;
+        }
+
+        // 3. Specialist Workload & Capacity Breakdown
+        const workloadEl = document.getElementById('agentWorkloadList');
+        if (workloadEl && a.agentWorkload) {
+          const entries = Object.entries(a.agentWorkload);
+          if (entries.length === 0) {
+            workloadEl.innerHTML = '<p class="text-xs text-muted">No agent workload records available.</p>';
+          } else {
+            workloadEl.innerHTML = entries.map(([name, stats]) => {
+              const maxTickets = Math.max(1, ...entries.map(e => e[1].total));
+              const percent = Math.min(100, Math.round((stats.total / maxTickets) * 100));
+              return `
+                <div class="agent-workload-row">
+                  <div class="agent-workload-meta">
+                    <strong>${name}</strong>
+                    <span class="text-muted text-xs">${stats.active} active &bull; ${stats.resolved} resolved</span>
+                  </div>
+                  <div class="workload-progress-bar">
+                    <div class="workload-progress-fill" style="width: ${percent}%;"></div>
+                  </div>
+                  <span class="workload-count-badge">${stats.total} total</span>
+                </div>
+              `;
+            }).join('');
+          }
+        }
+
+        // 4. CSAT Star Distribution Breakdown
+        const csatListEl = document.getElementById('csatDistributionList');
+        if (csatListEl && a.csatDistribution) {
+          const dist = a.csatDistribution;
+          const totalRated = Object.values(dist).reduce((acc, v) => acc + v, 0) || 1;
+          const stars = [5, 4, 3, 2, 1];
+
+          csatListEl.innerHTML = stars.map(s => {
+            const count = dist[s] || 0;
+            const pct = Math.round((count / totalRated) * 100);
+            return `
+              <div class="csat-dist-row">
+                <span class="csat-star-label">${s} ⭐</span>
+                <div class="csat-dist-bar">
+                  <div class="csat-dist-fill" style="width: ${pct}%;"></div>
+                </div>
+                <span class="csat-dist-count">${count} (${pct}%)</span>
+              </div>
+            `;
+          }).join('');
+        }
       }
     } catch (e) {
-      // ignore
+      console.warn('Dashboard KPI update error:', e);
     }
   },
 
