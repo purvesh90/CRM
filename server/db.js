@@ -416,17 +416,17 @@ class Database {
   }
 
   authenticate({ email, password, userId }) {
-    if (userId) {
-      const user = (this.data.users || []).find(u => u.id === userId);
-      if (user) {
-        const { password: _, ...safeUser } = user;
-        return safeUser;
-      }
+    let user = null;
+    if (email) {
+      user = (this.data.users || []).find(u => u.email.toLowerCase() === email.toLowerCase().trim());
+    } else if (userId) {
+      user = (this.data.users || []).find(u => u.id === userId);
     }
-    if (!email) return null;
-    const user = (this.data.users || []).find(u => u.email.toLowerCase() === email.toLowerCase());
     if (!user) return null;
-    if (user.password && user.password !== password) return null;
+    // Password must be provided and must match the account password
+    if (!password || (user.password && user.password !== password)) {
+      return null;
+    }
     const { password: _, ...safeUser } = user;
     return safeUser;
   }

@@ -98,34 +98,38 @@
             </div>
           </div>
           <div class="menu-divider"></div>
-          <div class="menu-section-label">SWITCH ROLE (DEMO ACCESS)</div>
-          <button class="menu-item-btn" data-switch-user="user-admin">
+          <div class="menu-section-label">SWITCH PROFILE (LOGIN REQUIRED)</div>
+          <button class="menu-item-btn" data-switch-user="user-admin" data-email="admin@pulsedesk.io" data-name="Sarah Connor" data-role="Super Admin" data-hint="admin">
             <span class="role-icon-box bg-indigo-soft"><i data-lucide="shield"></i></span>
             <div class="menu-item-text">
               <strong>Super Admin</strong>
-              <small>Full clearance & system control</small>
+              <small>Sarah Connor &bull; Password Required</small>
             </div>
+            <i data-lucide="lock" class="switch-lock-icon"></i>
           </button>
-          <button class="menu-item-btn" data-switch-user="user-agent">
+          <button class="menu-item-btn" data-switch-user="user-agent" data-email="agent@pulsedesk.io" data-name="David Vance" data-role="Support Specialist" data-hint="agent">
             <span class="role-icon-box bg-cyan-soft"><i data-lucide="headphones"></i></span>
             <div class="menu-item-text">
               <strong>Support Specialist</strong>
-              <small>Ticket triage & customer solver</small>
+              <small>David Vance &bull; Password Required</small>
             </div>
+            <i data-lucide="lock" class="switch-lock-icon"></i>
           </button>
-          <button class="menu-item-btn" data-switch-user="user-billing">
+          <button class="menu-item-btn" data-switch-user="user-billing" data-email="billing@pulsedesk.io" data-name="Elena Rostova" data-role="Billing Specialist" data-hint="billing">
             <span class="role-icon-box bg-amber-soft"><i data-lucide="credit-card"></i></span>
             <div class="menu-item-text">
               <strong>Billing Specialist</strong>
-              <small>Invoices & subscription support</small>
+              <small>Elena Rostova &bull; Password Required</small>
             </div>
+            <i data-lucide="lock" class="switch-lock-icon"></i>
           </button>
-          <button class="menu-item-btn" data-switch-user="user-customer">
+          <button class="menu-item-btn" data-switch-user="user-customer" data-email="liam@oasis-tech.com" data-name="Liam Gallagher" data-role="Enterprise Client" data-hint="customer">
             <span class="role-icon-box bg-emerald-soft"><i data-lucide="user"></i></span>
             <div class="menu-item-text">
               <strong>Customer Portal</strong>
-              <small>Self-service inquiry & tracking</small>
+              <small>Liam Gallagher &bull; Password Required</small>
             </div>
+            <i data-lucide="lock" class="switch-lock-icon"></i>
           </button>
           <div class="menu-divider"></div>
           <button class="menu-item-btn text-rose" id="btnSignOut">
@@ -1359,46 +1363,62 @@
   <!-- MODAL: LOGIN & ROLE SELECTOR -->
   <div class="modal-overlay hidden" id="loginModalOverlay">
     <div class="login-dialog-card">
+      <button type="button" class="login-close-btn" id="closeLoginModalBtn" aria-label="Cancel profile switch" style="display: none;">
+        <i data-lucide="x"></i>
+      </button>
+
       <div class="login-header">
         <div class="brand-logo-aura mb-2">
           <i data-lucide="shield-check" class="brand-icon"></i>
         </div>
         <h2 class="login-title">Pulse<span class="brand-accent">Desk</span> Portal</h2>
-        <p class="login-subtitle">Sign in to your account or choose a demonstration role</p>
+        <p class="login-subtitle">Sign in to your account or switch profile with password verification</p>
+      </div>
+
+      <!-- Target Account Notice (Appears when switching profiles) -->
+      <div id="loginTargetNotice" class="login-target-notice hidden">
+        <div class="target-notice-badge">
+          <i data-lucide="lock" class="target-lock-icon"></i>
+          <span>PROFILE SWITCH &bull; VERIFICATION REQUIRED</span>
+        </div>
+        <div class="target-notice-body">
+          <p class="target-notice-text">Authenticating as <strong id="loginTargetUserName">Sarah Connor</strong> (<span id="loginTargetUserRole">Super Admin</span>)</p>
+          <p class="target-notice-hint">Demo Password: <code id="loginTargetHint">admin</code></p>
+        </div>
       </div>
 
       <!-- Quick 1-Click Role Switcher -->
       <div class="login-roles-section">
-        <div class="login-section-title">QUICK DEMO ACCESS (CLICK TO SWITCH ROLE)</div>
+        <div class="login-section-title">QUICK DEMO ACCOUNTS (SELECT TO PREFILL)</div>
         <div class="login-roles-grid">
-          <button class="login-role-card role-card-admin" data-login-user="user-admin">
+          <button type="button" class="login-role-card role-card-admin" data-login-user="user-admin" data-email="admin@pulsedesk.io" data-name="Sarah Connor" data-role="Super Admin" data-hint="admin">
             <div class="role-card-badge">👑 Super Admin</div>
             <div class="role-card-name">Sarah Connor</div>
-            <div class="role-card-desc">All permissions: tickets, telegram, settings, deletion</div>
+            <div class="role-card-desc">Password: <code>admin</code></div>
           </button>
 
-          <button class="login-role-card role-card-agent" data-login-user="user-agent">
+          <button type="button" class="login-role-card role-card-agent" data-login-user="user-agent" data-email="agent@pulsedesk.io" data-name="David Vance" data-role="Support Specialist" data-hint="agent">
             <div class="role-card-badge">🛠️ Support Specialist</div>
             <div class="role-card-name">David Vance</div>
-            <div class="role-card-desc">Ticket resolution, live thread, customer directory</div>
+            <div class="role-card-desc">Password: <code>agent</code></div>
           </button>
 
-          <button class="login-role-card role-card-billing" data-login-user="user-billing">
+          <button type="button" class="login-role-card role-card-billing" data-login-user="user-billing" data-email="billing@pulsedesk.io" data-name="Elena Rostova" data-role="Billing Specialist" data-hint="billing">
             <div class="role-card-badge">💳 Billing Specialist</div>
             <div class="role-card-name">Elena Rostova</div>
-            <div class="role-card-desc">Finance & billing queues, invoice adjustments</div>
+            <div class="role-card-desc">Password: <code>billing</code></div>
           </button>
 
-          <button class="login-role-card role-card-customer" data-login-user="user-customer">
+          <button type="button" class="login-role-card role-card-customer" data-login-user="user-customer" data-email="liam@oasis-tech.com" data-name="Liam Gallagher" data-role="Enterprise Client" data-hint="customer">
             <div class="role-card-badge">👤 Enterprise Client</div>
             <div class="role-card-name">Liam Gallagher</div>
-            <div class="role-card-desc">Submit requests & track ongoing tickets</div>
+            <div class="role-card-desc">Password: <code>customer</code></div>
           </button>
         </div>
       </div>
 
       <div class="login-divider-row">
-        <span>OR SIGN IN WITH CREDENTIALS</span>
+        <span>ENTER PASSWORD TO AUTHENTICATE</span>
       </div>
 
       <!-- Standard Email/Password Form -->
@@ -1410,11 +1430,11 @@
         </div>
         <div class="form-group mb-4">
           <label for="loginPassword">Password:</label>
-          <input type="password" id="loginPassword" class="form-input" placeholder="••••••••" required>
+          <input type="password" id="loginPassword" class="form-input" placeholder="Enter password to verify" required autocomplete="current-password">
         </div>
-        <button type="submit" class="btn-primary w-full btn-login-submit">
+        <button type="submit" class="btn-primary w-full btn-login-submit" id="btnSubmitLogin">
           <i data-lucide="log-in"></i>
-          <span>Sign In to Workspace</span>
+          <span>Verify Password &amp; Login</span>
         </button>
       </form>
     </div>

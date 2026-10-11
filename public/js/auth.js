@@ -8,7 +8,7 @@ const AuthModule = {
     this.bindEvents();
   },
 
-  loadSession() {
+  async loadSession() {
     try {
       const stored = localStorage.getItem('pulsedesk_user');
       const token = localStorage.getItem('pulsedesk_token');
@@ -21,8 +21,8 @@ const AuthModule = {
     }
 
     if (!this.currentUser) {
-      // Default to Super Admin for seamless first load, or open login modal
-      this.login({ userId: 'user-admin' });
+      // Default initial session with admin credentials
+      await this.login({ email: 'admin@pulsedesk.io', password: 'admin' }, false);
     } else {
       this.applyUserRole(this.currentUser);
     }
@@ -46,21 +46,30 @@ const AuthModule = {
       });
     }
 
-    // Role Switcher Buttons inside Dropdown
+    // Role Switcher Buttons inside Dropdown (STRICT: Password Login Required)
     document.querySelectorAll('[data-switch-user]').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
-        const userId = btn.getAttribute('data-switch-user');
-        this.login({ userId });
         if (dropdown) dropdown.classList.add('hidden');
+        
+        const email = btn.getAttribute('data-email');
+        const name = btn.getAttribute('data-name');
+        const role = btn.getAttribute('data-role');
+        const hint = btn.getAttribute('data-hint');
+
+        this.promptProfileSwitch({ email, name, role, hint });
       });
     });
 
-    // Quick Role Login Cards in Login Modal
+    // Quick Role Login Cards in Login Modal (Select account to verify)
     document.querySelectorAll('[data-login-user]').forEach(btn => {
       btn.addEventListener('click', () => {
-        const userId = btn.getAttribute('data-login-user');
-        this.login({ userId });
+        const email = btn.getAttribute('data-email');
+        const name = btn.getAttribute('data-name');
+        const role = btn.getAttribute('data-role');
+        const hint = btn.getAttribute('data-hint');
+
+        this.selectAccountForLogin({ email, name, role, hint });
       });
     });
 
@@ -70,6 +79,33 @@ const AuthModule = {
       loginForm.addEventListener('submit', (e) => this.handleCustomLogin(e));
     }
 
+    // Close Login Modal Button
+    const closeBtn = document.getElementById('closeLoginModalBtn');
+    if (closeBtn) {
+      closeBtn.addEventListener('click', () => {
+        if (this.currentUser) {
+          this.closeLoginModal();
+        }
+      });
+    }
+
+    // Overlay click to close if already logged in
+    const modalOverlay = document.getElementById('loginModalOverlay');
+    if (modalOverlay) {
+      modalOverlay.addEventListener('click', (e) => {
+        if (e.target === modalOverlay && this.currentUser) {
+          this.closeLoginModal();
+        }
+      });
+    }
+
+    // Keyboard ESC to close modal if logged in
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && this.currentUser && modalOverlay && !modalOverlay.classList.contains('hidden')) {
+        this.closeLoginModal();
+      }
+    });
+
     // Sign Out Button
     const btnSignOut = document.getElementById('btnSignOut');
     if (btnSignOut) {
@@ -77,12 +113,62 @@ const AuthModule = {
     }
   },
 
-  async login({ email, password, userId }) {
+  promptProfileSwitch({ email, name, role, hint }) {
+    this.openLoginModal(true);
+    this.selectAccountForLogin({ email, name, role, hint });
+    if (window.App && typeof App.showToast === 'function') {
+      App.showToast(`Password verification required to switch to ${name} (${role})`, 'info');
+    }
+  },
+
+  selectAccountForLogin({ email, name, role, hint }) {
+    const emailInput = document.getElementById('loginEmail');
+    const passwordInput = document.getElementById('loginPassword');
+    const noticeEl = document.getElementById('loginTargetNotice');
+    const nameEl = document.getElementById('loginTargetUserName');
+    const roleEl = document.getElementById('loginTargetUserRole');
+    const hintEl = document.getElementById('loginTargetHint');
+    const errEl = document.getElementById('loginErrorMessage');
+
+    if (errEl) errEl.classList.add('hidden');
+
+    if (emailInput && email) {
+      emailInput.value = email;
+    }
+    if (passwordInput) {
+      passwordInput.value = '';
+      passwordInput.focus();
+    }
+
+    if (noticeEl && name && role) {
+      if (nameEl) nameEl.textContent = name;
+      if (roleEl) roleEl.textContent = role;
+      if (hintEl) hintEl.textContent = hint || 'admin';
+      noticeEl.classList.remove('hidden');
+    }
+
+    // Highlight active card in modal
+    document.querySelectorAll('[data-login-user]').forEach(btn => {
+      const btnEmail = btn.getAttribute('data-email');
+      if (btnEmail && email && btnEmail.toLowerCase() === email.toLowerCase()) {
+        btn.classList.add('active');
+      } else {
+        btn.classList.remove('active');
+      }
+    });
+
+    if (window.lucide) lucide.createIcons();
+  },
+
+  async login({ email, password }, showSuccessToast = true) {
+    const errEl = document.getElementById('loginErrorMessage');
+    if (errEl) errEl.classList.add('hidden');
+
     try {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, userId })
+        body: JSON.stringify({ email, password })
       });
       const data = await res.json();
 
@@ -95,18 +181,31 @@ const AuthModule = {
         this.closeLoginModal();
         this.applyUserRole(data.user);
 
-        App.showToast(`Logged in as ${data.user.name} (${data.user.roleLabel})`, 'success');
+        if (showSuccessToast && window.App && typeof App.showToast === 'function') {
+          App.showToast(`Verified & logged in as ${data.user.name} (${data.user.roleLabel})`, 'success');
+        }
         return true;
       } else {
-        const errEl = document.getElementById('loginErrorMessage');
         if (errEl) {
-          errEl.textContent = data.error || 'Login failed';
+          errEl.textContent = data.error || 'Invalid credentials. Password verification failed.';
           errEl.classList.remove('hidden');
+        }
+        const passwordInput = document.getElementById('loginPassword');
+        if (passwordInput) {
+          passwordInput.select();
+          passwordInput.focus();
+        }
+        if (showSuccessToast && window.App && typeof App.showToast === 'function') {
+          App.showToast(data.error || 'Password verification failed', 'error');
         }
         return false;
       }
     } catch (err) {
-      App.showToast('Network error during authentication', 'error');
+      console.error('Auth error:', err);
+      if (errEl) {
+        errEl.textContent = 'Network or server error during authentication';
+        errEl.classList.remove('hidden');
+      }
       return false;
     }
   },
@@ -115,7 +214,7 @@ const AuthModule = {
     e.preventDefault();
     const email = document.getElementById('loginEmail')?.value.trim();
     const password = document.getElementById('loginPassword')?.value;
-    await this.login({ email, password });
+    await this.login({ email, password }, true);
   },
 
   logout() {
@@ -127,18 +226,32 @@ const AuthModule = {
     const dropdown = document.getElementById('userMenuDropdown');
     if (dropdown) dropdown.classList.add('hidden');
 
-    this.openLoginModal();
-    App.showToast('You have signed out of PulseDesk CRM', 'info');
+    const noticeEl = document.getElementById('loginTargetNotice');
+    if (noticeEl) noticeEl.classList.add('hidden');
+
+    this.openLoginModal(false);
+    if (window.App && typeof App.showToast === 'function') {
+      App.showToast('You have signed out of PulseDesk CRM', 'info');
+    }
   },
 
-  openLoginModal() {
+  openLoginModal(canClose = true) {
     const modal = document.getElementById('loginModalOverlay');
+    const closeBtn = document.getElementById('closeLoginModalBtn');
     if (modal) modal.classList.remove('hidden');
+    if (closeBtn) {
+      closeBtn.style.display = canClose && this.currentUser ? 'flex' : 'none';
+    }
+    if (window.lucide) lucide.createIcons();
   },
 
   closeLoginModal() {
     const modal = document.getElementById('loginModalOverlay');
     if (modal) modal.classList.add('hidden');
+    const noticeEl = document.getElementById('loginTargetNotice');
+    if (noticeEl) noticeEl.classList.add('hidden');
+    const errEl = document.getElementById('loginErrorMessage');
+    if (errEl) errEl.classList.add('hidden');
   },
 
   applyUserRole(user) {
@@ -176,17 +289,20 @@ const AuthModule = {
     // 3. Role-Based Workspace Views & Navigation Permissions
     const settingsNavItem = document.querySelector('.sidebar-nav a[data-tab="settings"]');
     const deleteTicketBtn = document.getElementById('deleteTicketBtn');
-    const telegramForm = document.getElementById('telegramTokenForm');
     const portalSwitcher = document.querySelector('.portal-switch-pill');
 
     if (user.role === 'CUSTOMER') {
       // Customer: Lock admin desk and automatically switch to self-service portal
       if (portalSwitcher) portalSwitcher.style.display = 'none';
-      App.switchPortalMode(true);
+      if (window.App && typeof App.switchPortalMode === 'function') {
+        App.switchPortalMode(true);
+      }
     } else {
       // Support Staff (Admin, Agent, Billing)
       if (portalSwitcher) portalSwitcher.style.display = 'flex';
-      App.switchPortalMode(false);
+      if (window.App && typeof App.switchPortalMode === 'function') {
+        App.switchPortalMode(false);
+      }
 
       if (user.role === 'SUPER_ADMIN') {
         // Super Admin: Full unrestricted access
@@ -199,7 +315,6 @@ const AuthModule = {
       } else {
         // Agent or Billing Specialist: Restrict admin-only actions
         if (settingsNavItem) {
-          // Hide or disable settings tab
           settingsNavItem.style.opacity = '0.4';
           settingsNavItem.style.pointerEvents = 'none';
           settingsNavItem.title = 'Super Admin privilege required';
@@ -212,7 +327,7 @@ const AuthModule = {
       }
     }
 
-    lucide.createIcons();
+    if (window.lucide) lucide.createIcons();
   },
 
   getAuthHeaders() {
