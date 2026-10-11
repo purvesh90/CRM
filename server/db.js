@@ -341,6 +341,75 @@ const initialData = {
           channel: 'TELEGRAM'
         }
       ]
+    },
+    {
+      id: 'PD-1006',
+      title: 'Stripe invoice recurring payment retry failure for EU tier',
+      description: 'Customer corporate card was declined during month-end renewal. Needs manual SEPA direct debit invoice generation.',
+      status: 'IN_PROGRESS',
+      priority: 'HIGH',
+      department: 'Billing',
+      channel: 'TELEGRAM',
+      customerId: 'cust-104',
+      customerName: 'Aisha Al-Mansoor',
+      customerEmail: 'aisha@zenithcloud.org',
+      telegramChatId: '98451230',
+      telegramUsername: 'aisha_cloud',
+      assignedTo: 'Elena Rostova',
+      tags: ['Billing', 'Stripe', 'SEPA', 'Invoice'],
+      createdAt: new Date(Date.now() - 5 * 3600000).toISOString(),
+      updatedAt: new Date(Date.now() - 40 * 60000).toISOString(),
+      resolvedAt: null,
+      messages: [
+        {
+          id: 'msg-501',
+          sender: 'CUSTOMER',
+          senderName: 'Aisha Al-Mansoor',
+          text: 'Our accounting department notified us that the automated Stripe charge failed. Can you issue a SEPA direct invoice?',
+          isInternal: false,
+          timestamp: new Date(Date.now() - 5 * 3600000).toISOString(),
+          channel: 'TELEGRAM'
+        },
+        {
+          id: 'msg-502',
+          sender: 'AGENT',
+          senderName: 'Elena Rostova',
+          text: 'Hello Aisha, generated SEPA billing invoice with reference #EU-88219. Sent to your corporate accounts payable.',
+          isInternal: false,
+          timestamp: new Date(Date.now() - 40 * 60000).toISOString(),
+          channel: 'TELEGRAM'
+        }
+      ]
+    },
+    {
+      id: 'PD-1007',
+      title: 'Request credit note & refund for duplicate seat license upgrade',
+      description: 'Purchased 5 additional seats twice during annual checkout. Customer requesting credit note adjustment.',
+      status: 'OPEN',
+      priority: 'URGENT',
+      department: 'Billing',
+      channel: 'WEB_PORTAL',
+      customerId: 'cust-102',
+      customerName: 'Sophia Martinez',
+      customerEmail: 'sophia.m@fintechflow.io',
+      telegramChatId: '76239102',
+      telegramUsername: 'sophiam_fintech',
+      assignedTo: 'Elena Rostova',
+      tags: ['Billing', 'Refund', 'Credit Note', 'License'],
+      createdAt: new Date(Date.now() - 1 * 3600000).toISOString(),
+      updatedAt: new Date(Date.now() - 1 * 3600000).toISOString(),
+      resolvedAt: null,
+      messages: [
+        {
+          id: 'msg-601',
+          sender: 'CUSTOMER',
+          senderName: 'Sophia Martinez',
+          text: 'Hi Elena, our card was billed twice for the 5 extra agent seats. Could you please void the duplicate transaction and issue a credit note?',
+          isInternal: false,
+          timestamp: new Date(Date.now() - 1 * 3600000).toISOString(),
+          channel: 'WEB_PORTAL'
+        }
+      ]
     }
   ],
   telegramLogs: [
@@ -482,6 +551,42 @@ class Database {
 
   getTickets(filters = {}) {
     let list = [...this.data.tickets];
+
+    // Role-based Access Control (RBAC) Ticket Scoping
+    if (filters.user) {
+      const { role, email, name, id } = filters.user;
+      if (role === 'BILLING_SPECIALIST') {
+        // Billing Specialist strictly sees ONLY Billing & Invoice tickets
+        list = list.filter(t => {
+          const isBillingDept = t.department && t.department.toLowerCase().includes('billing');
+          const isBillingTag = t.tags && t.tags.some(tag => tag.toLowerCase().includes('billing'));
+          return isBillingDept || isBillingTag;
+        });
+      } else if (role === 'SUPPORT_AGENT') {
+        // Support Specialist strictly sees Technical & Customer Support tickets (excluding billing)
+        list = list.filter(t => {
+          const isBillingDept = t.department && t.department.toLowerCase().includes('billing');
+          const isBillingTag = t.tags && t.tags.some(tag => tag.toLowerCase().includes('billing'));
+          return !isBillingDept && !isBillingTag;
+        });
+      } else if (role === 'CUSTOMER') {
+        // Customer strictly sees only their own tickets
+        const userEmail = (email || '').toLowerCase().trim();
+        const userName = (name || '').toLowerCase().trim();
+        list = list.filter(t =>
+          (t.customerEmail && t.customerEmail.toLowerCase().trim() === userEmail) ||
+          (t.customerName && t.customerName.toLowerCase().trim() === userName) ||
+          (t.customerId && t.customerId === id)
+        );
+      }
+      // SUPER_ADMIN has unrestricted visibility across all departments
+    }
+
+    // Explicit department filter (e.g. from UI dropdown)
+    if (filters.department && filters.department !== 'ALL') {
+      list = list.filter(t => (t.department || '').toLowerCase() === filters.department.toLowerCase());
+    }
+
     if (filters.status && filters.status !== 'ALL') {
       list = list.filter(t => t.status === filters.status);
     }
@@ -654,8 +759,8 @@ class Database {
     return this.data.telegramLogs || [];
   }
 
-  getAnalytics() {
-    const tickets = this.data.tickets;
+  getAnalytics(user = null) {
+    const tickets = this.getTickets({ user });
     const total = tickets.length;
     const open = tickets.filter(t => t.status === 'OPEN').length;
     const inProgress = tickets.filter(t => t.status === 'IN_PROGRESS').length;

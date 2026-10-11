@@ -349,8 +349,30 @@
           </div>
         </div>
 
+        <!-- Role Queue Scoping Banner -->
+        <div id="roleQueueBanner" class="role-queue-banner">
+          <div class="role-queue-info">
+            <span class="role-queue-pill" id="roleQueuePill">
+              <i data-lucide="shield-check" class="queue-pill-icon"></i>
+              <span id="roleQueueName">Super Admin Full Desk</span>
+            </span>
+            <span class="role-queue-desc" id="roleQueueDesc">Displaying tickets across all corporate departments</span>
+          </div>
+          <div class="role-queue-count" id="roleQueueCountBadge">0 tickets in queue</div>
+        </div>
+
         <!-- Filter Controls Bar -->
         <div class="ticket-filter-bar">
+          <div class="filter-group" id="filterDepartmentGroup">
+            <label for="filterDepartment">Department:</label>
+            <select id="filterDepartment" class="form-select">
+              <option value="ALL">All Departments</option>
+              <option value="Billing">Billing &amp; Invoices</option>
+              <option value="Technical Support">Technical Support</option>
+              <option value="Product">Product &amp; QA</option>
+            </select>
+          </div>
+
           <div class="filter-group">
             <label for="filterStatus">Status:</label>
             <select id="filterStatus" class="form-select">

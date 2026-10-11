@@ -62,8 +62,19 @@ app.get('/api/auth/roles', (req, res) => {
 
 // --- TICKETS API ---
 app.get('/api/tickets', (req, res) => {
-  const { status, priority, channel, search } = req.query;
-  const tickets = db.getTickets({ status, priority, channel, search });
+  const { status, priority, channel, search, department } = req.query;
+  const userId = req.headers['x-user-id'] || req.query.userId;
+  const userRole = req.headers['x-user-role'] || req.query.userRole;
+  
+  let user = null;
+  if (userId) {
+    user = db.getUserById(userId);
+  }
+  if (!user && userRole) {
+    user = { role: userRole, id: userId || 'user-unknown' };
+  }
+
+  const tickets = db.getTickets({ status, priority, channel, search, department, user });
   res.json({ success: true, count: tickets.length, tickets });
 });
 
@@ -164,7 +175,18 @@ app.get('/api/agents', (req, res) => {
 
 // --- ANALYTICS ---
 app.get('/api/analytics', (req, res) => {
-  res.json({ success: true, analytics: db.getAnalytics() });
+  const userId = req.headers['x-user-id'] || req.query.userId;
+  const userRole = req.headers['x-user-role'] || req.query.userRole;
+  
+  let user = null;
+  if (userId) {
+    user = db.getUserById(userId);
+  }
+  if (!user && userRole) {
+    user = { role: userRole, id: userId || 'user-unknown' };
+  }
+
+  res.json({ success: true, analytics: db.getAnalytics(user) });
 });
 
 // --- SETTINGS (Secured) ---

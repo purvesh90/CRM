@@ -1352,6 +1352,83 @@ code, pre {
   box-shadow: var(--shadow-xs);
 }
 
+/* Role Queue Scoping Banner */
+.role-queue-banner {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  box-shadow: var(--shadow-xs);
+  animation: fadeIn 0.15s ease-out;
+}
+
+.role-queue-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.role-queue-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.role-queue-pill.pill-billing {
+  background: var(--amber-light);
+  color: var(--amber);
+  border: 1px solid var(--amber-border);
+}
+
+.role-queue-pill.pill-support {
+  background: var(--cyan-light);
+  color: var(--cyan);
+  border: 1px solid var(--cyan-border);
+}
+
+.role-queue-pill.pill-customer {
+  background: var(--emerald-light);
+  color: var(--emerald);
+  border: 1px solid var(--emerald-border);
+}
+
+.role-queue-pill.pill-admin {
+  background: var(--primary-light);
+  color: var(--primary-text);
+  border: 1px solid var(--primary-border);
+}
+
+.queue-pill-icon {
+  width: 14px;
+  height: 14px;
+}
+
+.role-queue-desc {
+  font-size: 0.76rem;
+  color: var(--text-muted);
+}
+
+.role-queue-count {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+}
+
 /* Filter controls bar */
 .ticket-filter-bar {
   background: var(--bg-card);

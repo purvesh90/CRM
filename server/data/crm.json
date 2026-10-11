@@ -108,7 +108,7 @@
       "description": "1009 [fund]",
       "status": "OPEN",
       "priority": "MEDIUM",
-      "department": "Technical Support",
+      "department": "Billing",
       "channel": "TELEGRAM",
       "customerId": "cust-mv2j7ojkt9hp",
       "customerName": "Purvesh Sonagra",
@@ -121,7 +121,7 @@
         "Bot"
       ],
       "createdAt": "2026-10-10T15:11:05.985Z",
-      "updatedAt": "2026-10-10T15:11:05.985Z",
+      "updatedAt": "2026-10-11T05:53:00.555Z",
       "resolvedAt": null,
       "messages": [
         {
@@ -202,11 +202,11 @@
     },
     {
       "id": "PD-1007",
-      "title": "Unable to connect to staging database",
+      "title": "Request credit note & refund for duplicate seat license upgrade",
       "description": "Unable to connect to staging database",
       "status": "OPEN",
       "priority": "MEDIUM",
-      "department": "Technical Support",
+      "department": "Billing",
       "channel": "TELEGRAM",
       "customerId": "cust-101",
       "customerName": "Liam Gallagher",
@@ -215,8 +215,9 @@
       "telegramUsername": "liam_gallagher_tech",
       "assignedTo": "Sarah Connor",
       "tags": [
-        "Telegram",
-        "Bot"
+        "Billing",
+        "Refund",
+        "Credit Note"
       ],
       "createdAt": "2026-10-10T14:49:11.469Z",
       "updatedAt": "2026-10-10T14:49:11.469Z",
@@ -235,11 +236,11 @@
     },
     {
       "id": "PD-1006",
-      "title": "Emergency API Gateway latency spike",
+      "title": "Stripe invoice recurring payment retry failure for EU tier",
       "description": "Emergency API Gateway latency spike",
       "status": "IN_PROGRESS",
       "priority": "URGENT",
-      "department": "Technical Support",
+      "department": "Billing",
       "channel": "TELEGRAM",
       "customerId": "cust-101",
       "customerName": "Liam Gallagher",
@@ -248,8 +249,9 @@
       "telegramUsername": "liam_gallagher_tech",
       "assignedTo": "Elena Rostova",
       "tags": [
-        "Telegram",
-        "Bot"
+        "Billing",
+        "Stripe",
+        "SEPA"
       ],
       "createdAt": "2026-10-10T14:33:14.661Z",
       "updatedAt": "2026-10-10T14:48:48.002Z",

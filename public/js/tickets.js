@@ -14,7 +14,7 @@ const TicketsModule = {
 
   bindEvents() {
     // Global filter controls bar
-    ['filterStatus', 'filterPriority', 'filterChannel'].forEach(id => {
+    ['filterStatus', 'filterPriority', 'filterChannel', 'filterDepartment'].forEach(id => {
       const el = document.getElementById(id);
       if (el) el.addEventListener('change', () => this.loadTickets());
     });
@@ -34,6 +34,9 @@ const TicketsModule = {
         document.getElementById('filterStatus').value = 'ALL';
         document.getElementById('filterPriority').value = 'ALL';
         document.getElementById('filterChannel').value = 'ALL';
+        if (document.getElementById('filterDepartment') && !document.getElementById('filterDepartment').disabled) {
+          document.getElementById('filterDepartment').value = 'ALL';
+        }
         document.getElementById('ticketsSearchInput').value = '';
         this.inboxSubfilter = 'ALL';
         document.querySelectorAll('[data-inbox-filter]').forEach(b => {
@@ -186,19 +189,24 @@ const TicketsModule = {
       const status = document.getElementById('filterStatus')?.value || 'ALL';
       const priority = document.getElementById('filterPriority')?.value || 'ALL';
       const channel = document.getElementById('filterChannel')?.value || 'ALL';
+      const department = document.getElementById('filterDepartment')?.value || 'ALL';
       const search = document.getElementById('ticketsSearchInput')?.value || '';
 
-      const query = new URLSearchParams({ status, priority, channel, search });
-      const res = await fetch(`/api/tickets?${query.toString()}`);
+      const query = new URLSearchParams({ status, priority, channel, department, search });
+      const headers = window.AuthModule ? AuthModule.getAuthHeaders() : {};
+      const res = await fetch(`/api/tickets?${query.toString()}`, { headers });
       const data = await res.json();
 
       if (data.success) {
         this.tickets = data.tickets;
+        this.updateRoleQueueBanner();
         this.renderSplitInbox();
         this.renderKanban();
         this.renderTable();
         this.renderUrgentDashboardList();
-        App.updateDashboardKPIs();
+        if (window.App && typeof App.updateDashboardKPIs === 'function') {
+          App.updateDashboardKPIs();
+        }
 
         const badge = document.getElementById('sidebarOpenTicketBadge');
         if (badge) {
@@ -209,6 +217,53 @@ const TicketsModule = {
     } catch (err) {
       console.warn('Failed to load tickets:', err);
     }
+  },
+
+  updateRoleQueueBanner() {
+    const banner = document.getElementById('roleQueueBanner');
+    const pill = document.getElementById('roleQueuePill');
+    const descEl = document.getElementById('roleQueueDesc');
+    const countEl = document.getElementById('roleQueueCountBadge');
+    const deptSelect = document.getElementById('filterDepartment');
+
+    if (!banner || !pill) return;
+
+    const user = window.AuthModule?.currentUser;
+    const count = this.tickets.length;
+
+    if (countEl) {
+      countEl.textContent = `${count} ticket${count === 1 ? '' : 's'} in queue`;
+    }
+
+    if (!user || user.role === 'SUPER_ADMIN') {
+      pill.className = 'role-queue-pill pill-admin';
+      pill.innerHTML = '<i data-lucide="shield-check" class="queue-pill-icon"></i> <span>Super Admin Full Scope</span>';
+      if (descEl) descEl.textContent = 'Unrestricted view across all departments (Billing, Technical Support, Product)';
+      if (deptSelect) deptSelect.disabled = false;
+    } else if (user.role === 'BILLING_SPECIALIST') {
+      pill.className = 'role-queue-pill pill-billing';
+      pill.innerHTML = '<i data-lucide="credit-card" class="queue-pill-icon"></i> <span>Billing Department Queue</span>';
+      if (descEl) descEl.textContent = 'Role-restricted: Showing strictly Billing, Invoices, Refunds & Subscription tickets';
+      if (deptSelect) {
+        deptSelect.value = 'Billing';
+        deptSelect.disabled = true;
+      }
+    } else if (user.role === 'SUPPORT_AGENT') {
+      pill.className = 'role-queue-pill pill-support';
+      pill.innerHTML = '<i data-lucide="headphones" class="queue-pill-icon"></i> <span>Technical Support Queue</span>';
+      if (descEl) descEl.textContent = 'Role-restricted: Showing Technical Support, Infrastructure & Triage tickets';
+      if (deptSelect) {
+        deptSelect.value = 'Technical Support';
+        deptSelect.disabled = true;
+      }
+    } else if (user.role === 'CUSTOMER') {
+      pill.className = 'role-queue-pill pill-customer';
+      pill.innerHTML = '<i data-lucide="user" class="queue-pill-icon"></i> <span>Customer Portal Tickets</span>';
+      if (descEl) descEl.textContent = `Showing only requests submitted by ${user.name} (${user.email})`;
+      if (deptSelect) deptSelect.disabled = true;
+    }
+
+    if (window.lucide) lucide.createIcons();
   },
 
   /* ------------------------------------------------------------

@@ -327,6 +327,14 @@ const AuthModule = {
       }
     }
 
+    // Refresh tickets and KPIs with role-scoped filters
+    if (window.TicketsModule && typeof TicketsModule.loadTickets === 'function') {
+      TicketsModule.loadTickets();
+    }
+    if (window.App && typeof App.updateDashboardKPIs === 'function') {
+      App.updateDashboardKPIs();
+    }
+
     if (window.lucide) lucide.createIcons();
   },
 

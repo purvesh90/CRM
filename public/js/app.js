@@ -213,7 +213,8 @@ const App = {
 
   async updateDashboardKPIs() {
     try {
-      const res = await fetch('/api/analytics');
+      const headers = window.AuthModule ? AuthModule.getAuthHeaders() : {};
+      const res = await fetch('/api/analytics', { headers });
       const data = await res.json();
       if (data.success && data.analytics) {
         const a = data.analytics;
@@ -316,7 +317,8 @@ const App = {
 
   async loadAnalytics() {
     try {
-      const res = await fetch('/api/analytics');
+      const headers = window.AuthModule ? AuthModule.getAuthHeaders() : {};
+      const res = await fetch('/api/analytics', { headers });
       const data = await res.json();
       if (data.success && data.analytics) {
         AnalyticsModule.renderAnalyticsCharts(data.analytics);
