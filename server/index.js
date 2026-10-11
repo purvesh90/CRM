@@ -27,6 +27,7 @@ function broadcastSSE(eventType, data) {
     }
   }
 }
+telegramService.setBroadcaster(broadcastSSE);
 
 app.get('/api/events', (req, res) => {
   res.setHeader('Content-Type', 'text/event-stream');
@@ -223,6 +224,19 @@ app.post('/api/tickets/:id/messages', authenticateRequest, requireTicketAccess, 
 
   broadcastSSE('ticket_message', { ticketId: ticket.id, message, ticketStatus: ticket.status });
   res.json({ success: true, message, ticket, telegramDispatched });
+});
+
+// Real-time Live Presence: Typing indicator endpoint
+app.post('/api/tickets/:id/typing', authenticateRequest, requireTicketAccess, (req, res) => {
+  const { isTyping } = req.body;
+  broadcastSSE('typing', {
+    ticketId: req.params.id,
+    user: req.user.name,
+    userId: req.user.id,
+    role: req.user.role,
+    isTyping: !!isTyping
+  });
+  res.json({ success: true });
 });
 
 // Customer Satisfaction (CSAT) Rating

@@ -66,6 +66,12 @@
         <span id="telegramStatusText">Telegram Live</span>
       </div>
 
+      <!-- Sound Alerts Toggle & Live Unread Bell -->
+      <button class="sound-toggle-btn" id="soundToggleBtn" title="Sound alerts enabled (Click to mute/unmute)" aria-label="Toggle Sound">
+        <i data-lucide="bell" id="soundIcon"></i>
+        <span class="header-unread-badge hidden" id="headerUnreadBadge">0</span>
+      </button>
+
       <!-- Theme Switcher Button -->
       <button class="theme-toggle-btn" id="themeToggleBtn" title="Toggle Light / Dark Mode" aria-label="Toggle Theme">
         <i data-lucide="moon" id="themeIcon"></i>
@@ -594,6 +600,16 @@
               <!-- Audit Trail Stream (State Machine & History Log) -->
               <div class="thread-audit-stream hidden" id="splitAuditStream">
                 <!-- Rendered dynamically -->
+              </div>
+
+              <!-- Live Real-Time Typing Presence Indicator -->
+              <div class="typing-indicator-bar hidden" id="splitTypingBar">
+                <div class="typing-dots">
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </div>
+                <span class="typing-text" id="splitTypingText">Liam Gallagher is typing...</span>
               </div>
 
               <!-- Canned Responses Quick Bar -->

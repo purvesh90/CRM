@@ -8,10 +8,15 @@ class TelegramService {
     this.pollingTimer = null;
     this.botInfo = null;
     this.processedUpdates = new Set(); // For idempotency
+    this.broadcaster = null;
 
     if (this.token) {
       this.init();
     }
+  }
+
+  setBroadcaster(fn) {
+    this.broadcaster = fn;
   }
 
   async init() {
@@ -294,13 +299,29 @@ class TelegramService {
     // If customer has an active ticket and didn't explicitly run /new, append message to it!
     if (activeTickets.length > 0 && !text.startsWith('/new') && !text.startsWith('/ticket')) {
       const activeTicket = activeTickets[0];
-      db.addMessageToTicket(activeTicket.id, {
+      const added = db.addMessageToTicket(activeTicket.id, {
         sender: 'CUSTOMER',
         senderName: `${fullName} (Telegram)`,
         text: issueDescription,
         isInternal: false,
         channel: 'TELEGRAM'
       });
+
+      if (this.broadcaster) {
+        this.broadcaster('ticket_message', {
+          ticketId: activeTicket.id,
+          message: added?.message || {
+            sender: 'CUSTOMER',
+            senderName: `${fullName} (Telegram)`,
+            text: issueDescription,
+            timestamp: new Date().toISOString(),
+            channel: 'TELEGRAM'
+          },
+          ticketStatus: activeTicket.status,
+          fromTelegram: true,
+          customerName: fullName
+        });
+      }
 
       await this.sendMessage(chatId, `✅ <i>Your reply was posted to Ticket #${activeTicket.id}. Our agent will respond shortly.</i>`);
       return;
@@ -323,6 +344,10 @@ class TelegramService {
       department: issueDescription.toLowerCase().includes('bill') || issueDescription.toLowerCase().includes('invoice') ? 'Billing' : 'Technical Support',
       tags: ['Telegram', 'Bot']
     }, { name: fullName, role: 'CUSTOMER' });
+
+    if (this.broadcaster) {
+      this.broadcaster('ticket_created', newTicket);
+    }
 
     const replyMsg = `🎉 <b>Ticket Created Successfully!</b>\n\n` +
       `🎫 <b>Ticket ID:</b> <code>#${newTicket.id}</code>\n` +

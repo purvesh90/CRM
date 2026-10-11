@@ -113,6 +113,20 @@ const TicketsModule = {
       tgLinkBtn.addEventListener('click', () => this.handleGenerateTelegramLink());
     }
 
+    // Live Typing Presence emitter on composer input
+    const composerInput = document.getElementById('splitComposerInput');
+    if (composerInput) {
+      let typingDebounce;
+      composerInput.addEventListener('input', () => {
+        if (!this.currentTicketId) return;
+        clearTimeout(typingDebounce);
+        this.emitTyping(true);
+        typingDebounce = setTimeout(() => {
+          this.emitTyping(false);
+        }, 1800);
+      });
+    }
+
     // Split Desk: Reply Form Submit
     const splitForm = document.getElementById('splitComposerForm');
     if (splitForm) {
@@ -1059,6 +1073,98 @@ const TicketsModule = {
     const statusSelect = document.getElementById('splitStatusSelect');
     if (statusSelect) statusSelect.value = 'OPEN';
     await this.handleSplitPropertyUpdate('splitStatusSelect');
+  },
+
+  emitTyping(isTyping) {
+    if (!this.currentTicketId) return;
+    try {
+      const headers = {
+        'Content-Type': 'application/json',
+        ...(window.AuthModule ? AuthModule.getAuthHeaders() : {})
+      };
+      fetch(`/api/tickets/${this.currentTicketId}/typing`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ isTyping })
+      }).catch(() => {});
+    } catch (e) {}
+  },
+
+  appendLiveMessage(msg) {
+    const stream = document.getElementById('splitMessagesStream');
+    if (!stream || !msg) return;
+
+    // Remove empty state message if present
+    if (stream.innerHTML.includes('No conversation history yet')) {
+      stream.innerHTML = '';
+    }
+
+    const rowClass = msg.isInternal ? 'internal' : (msg.sender === 'AGENT' ? 'outgoing' : 'incoming');
+    const icon = msg.isInternal ? 'lock' : (msg.sender === 'AGENT' ? 'shield-check' : 'user');
+    const timeStr = new Date(msg.timestamp || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    let syncTag = '';
+    if (msg.channel === 'TELEGRAM' || msg.channel === 'CRM_ADMIN') {
+      syncTag = `<span style="font-size:0.65rem;color:rgba(255,255,255,0.7);display:flex;align-items:center;gap:3px;"><i data-lucide="check-check"></i> Synced to Telegram</span>`;
+    }
+
+    let attachmentsHtml = '';
+    if (msg.attachments && msg.attachments.length > 0) {
+      attachmentsHtml = `
+        <div class="msg-attachments-wrap">
+          ${msg.attachments.map(att => {
+            const isImg = att.type && att.type.startsWith('image/');
+            if (isImg && att.dataUrl) {
+              return `
+                <a href="${att.dataUrl}" target="_blank" class="msg-attachment-img-preview" title="${this.escapeHtml(att.name)}">
+                  <img src="${att.dataUrl}" alt="${this.escapeHtml(att.name)}" style="max-height:120px;border-radius:6px;margin-top:6px;display:block;border:1px solid rgba(255,255,255,0.15);">
+                </a>
+              `;
+            }
+            return `
+              <a href="${att.dataUrl || '#'}" download="${this.escapeHtml(att.name)}" class="msg-attachment-download-chip">
+                <i data-lucide="paperclip"></i>
+                <span>${this.escapeHtml(att.name)}</span>
+              </a>
+            `;
+          }).join('')}
+        </div>
+      `;
+    }
+
+    const div = document.createElement('div');
+    div.className = `msg-row ${rowClass} msg-live-in`;
+    div.innerHTML = `
+      <div class="msg-bubble">
+        <div style="font-weight:700;font-size:0.7rem;margin-bottom:2px;display:flex;align-items:center;gap:4px;">
+          <i data-lucide="${icon}"></i>
+          ${this.escapeHtml(msg.senderName)}
+        </div>
+        <div>${this.escapeHtml(msg.text).replace(/\n/g, '<br>')}</div>
+        ${attachmentsHtml}
+      </div>
+      <div class="msg-meta-row">
+        <span>${timeStr}</span>
+        ${syncTag}
+      </div>
+    `;
+
+    stream.appendChild(div);
+    stream.scrollTop = stream.scrollHeight;
+    lucide.createIcons();
+  },
+
+  markTicketUnread(ticketId) {
+    const card = document.querySelector(`.inbox-ticket-item[data-ticket-id="${ticketId}"]`);
+    if (!card) return;
+    card.classList.add('ticket-unread-live');
+    let dot = card.querySelector('.live-unread-dot');
+    if (!dot) {
+      dot = document.createElement('span');
+      dot.className = 'live-unread-dot';
+      const topRow = card.querySelector('.inbox-ticket-top');
+      if (topRow) topRow.appendChild(dot);
+    }
   },
 
   /* ------------------------------------------------------------

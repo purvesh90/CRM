@@ -214,7 +214,7 @@
       "id": "PD-1009",
       "title": "Unable to connect to staging database",
       "description": "Unable to connect to staging database",
-      "status": "OPEN",
+      "status": "RESOLVED",
       "priority": "MEDIUM",
       "department": "Technical Support",
       "channel": "TELEGRAM",
@@ -229,8 +229,8 @@
         "Bot"
       ],
       "createdAt": "2026-10-10T15:06:06.087Z",
-      "updatedAt": "2026-10-10T15:06:06.087Z",
-      "resolvedAt": null,
+      "updatedAt": "2026-10-11T07:18:19.762Z",
+      "resolvedAt": "2026-10-11T07:18:19.762Z",
       "messages": [
         {
           "id": "msg-1791644766087",
@@ -241,7 +241,20 @@
           "timestamp": "2026-10-10T15:06:06.087Z",
           "channel": "TELEGRAM"
         }
-      ]
+      ],
+      "auditLog": [
+        {
+          "id": "aud-1791703099762",
+          "timestamp": "2026-10-11T07:18:19.762Z",
+          "actorName": "Sarah Connor",
+          "actorRole": "SUPER_ADMIN",
+          "action": "STATUS_CHANGED",
+          "from": "OPEN",
+          "to": "RESOLVED",
+          "details": "Status updated from OPEN to RESOLVED (Admin Authorized)"
+        }
+      ],
+      "closedAt": null
     },
     {
       "id": "PD-1008",
@@ -700,7 +713,7 @@
       "id": "PD-1002",
       "title": "Annual Enterprise Plan Renewal & Invoice VAT Update",
       "description": "We need to update our corporate VAT ID before generating the enterprise annual license renewal invoice.",
-      "status": "CLOSED",
+      "status": "OPEN",
       "priority": "HIGH",
       "department": "Billing",
       "channel": "TELEGRAM",
@@ -716,7 +729,7 @@
         "VAT"
       ],
       "createdAt": "2026-10-10T10:31:40.388Z",
-      "updatedAt": "2026-10-11T06:51:45.204Z",
+      "updatedAt": "2026-10-11T07:18:31.947Z",
       "resolvedAt": null,
       "messages": [
         {
@@ -1025,9 +1038,20 @@
           "from": "IN_PROGRESS",
           "to": "CLOSED",
           "details": "Status updated from IN_PROGRESS to CLOSED"
+        },
+        {
+          "id": "aud-1791703111947",
+          "timestamp": "2026-10-11T07:18:31.947Z",
+          "actorName": "Sarah Connor",
+          "actorRole": "SUPER_ADMIN",
+          "action": "STATUS_CHANGED",
+          "from": "CLOSED",
+          "to": "OPEN",
+          "details": "Status updated from CLOSED to OPEN (Admin Authorized)"
         }
       ],
-      "firstResponseAt": "2026-10-11T06:49:12.456Z"
+      "firstResponseAt": "2026-10-11T06:49:12.456Z",
+      "closedAt": null
     },
     {
       "id": "PD-1003",
@@ -1243,6 +1267,14 @@
     }
   ],
   "telegramLogs": [
+    {
+      "id": "tlog-1791703101027",
+      "timestamp": "2026-10-11T07:18:21.027Z",
+      "type": "OUTBOUND_ERROR",
+      "to": "89123456",
+      "text": "🎉 <b>Your ticket #PD-1009 has been marked RESOLVED!</b>\n\nResolved by <b>Sarah Connor</b>.\n\nHow was your support experience? Please rate us from 1 to ",
+      "status": "Bad Request: chat not found"
+    },
     {
       "id": "tlog-1791701519557",
       "timestamp": "2026-10-11T06:51:59.557Z",

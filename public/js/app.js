@@ -2,9 +2,13 @@
 const App = {
   currentTab: 'dashboard',
   isCustomerView: false,
+  soundEnabled: true,
+  unreadCount: 0,
+  typingTimer: null,
 
   init() {
     this.initTheme();
+    this.initSound();
     this.bindEvents();
     this.initSSE();
     this.loadCustomers();
@@ -31,6 +35,15 @@ const App = {
   },
 
   bindEvents() {
+    // Sound alert toggle button
+    const soundBtn = document.getElementById('soundToggleBtn');
+    if (soundBtn) {
+      soundBtn.addEventListener('click', () => this.toggleSound());
+    }
+
+    // Reset unread alerts on window focus
+    window.addEventListener('focus', () => this.clearUnreadAlerts());
+
     // Theme toggle button
     const themeBtn = document.getElementById('themeToggleBtn');
     if (themeBtn) {
@@ -576,39 +589,181 @@ const App = {
     }
   },
 
-  // Real-time Server-Sent Events (SSE)
+  // Sound notifications & presence controls
+  initSound() {
+    const saved = localStorage.getItem('pulsedesk_sound');
+    this.soundEnabled = saved !== 'false';
+    this.updateSoundIcon();
+  },
+
+  toggleSound() {
+    this.soundEnabled = !this.soundEnabled;
+    localStorage.setItem('pulsedesk_sound', String(this.soundEnabled));
+    this.updateSoundIcon();
+    this.showToast(this.soundEnabled ? '🔔 Sound notifications enabled' : '🔕 Sound notifications muted', 'info');
+    if (this.soundEnabled) this.playNotificationChime();
+  },
+
+  updateSoundIcon() {
+    const icon = document.getElementById('soundIcon');
+    const btn = document.getElementById('soundToggleBtn');
+    if (icon) {
+      icon.setAttribute('data-lucide', this.soundEnabled ? 'bell' : 'bell-off');
+      lucide.createIcons();
+    }
+    if (btn) {
+      btn.classList.toggle('sound-muted', !this.soundEnabled);
+    }
+  },
+
+  playNotificationChime() {
+    if (!this.soundEnabled) return;
+    try {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return;
+      const ctx = new AudioCtx();
+
+      const playTone = (freq, delay, dur) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, ctx.currentTime + delay);
+        gain.gain.setValueAtTime(0.12, ctx.currentTime + delay);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay + dur);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(ctx.currentTime + delay);
+        osc.stop(ctx.currentTime + delay + dur);
+      };
+
+      // Crisp dual-tone crystal notification chime (E5 -> B5)
+      playTone(659.25, 0, 0.16);
+      playTone(987.77, 0.09, 0.35);
+    } catch (e) {
+      // AudioContext policy catch
+    }
+  },
+
+  incrementUnread(senderName = 'Customer', ticketId = '') {
+    this.unreadCount++;
+    const badge = document.getElementById('headerUnreadBadge');
+    if (badge) {
+      badge.textContent = this.unreadCount > 9 ? '9+' : this.unreadCount;
+      badge.classList.remove('hidden');
+    }
+    document.title = `(${this.unreadCount}) 💬 ${senderName} - PulseDesk CRM`;
+  },
+
+  clearUnreadAlerts() {
+    this.unreadCount = 0;
+    const badge = document.getElementById('headerUnreadBadge');
+    if (badge) {
+      badge.classList.add('hidden');
+      badge.textContent = '0';
+    }
+    document.title = 'PulseDesk - Omnichannel CRM';
+  },
+
+  // Real-time Server-Sent Events (SSE) Live Presence Engine
   initSSE() {
     try {
       const evtSource = new EventSource('/api/events');
 
+      // 1. Live Ticket Created (from Web or Telegram)
       evtSource.addEventListener('ticket_created', (e) => {
         const ticket = JSON.parse(e.data);
-        App.showToast(`🔔 New Ticket: #${ticket.id} (${ticket.customerName})`, 'info');
-        TicketsModule.loadTickets();
-        TelegramModule.loadLogs();
+        this.playNotificationChime();
+        this.incrementUnread(ticket.customerName || 'Customer', ticket.id);
+        this.showToast(`🔔 New Ticket #${ticket.id}: ${ticket.title} (${ticket.channel})`, 'info');
+        if (window.TicketsModule) {
+          TicketsModule.loadTickets();
+        }
+        if (window.TelegramModule) {
+          TelegramModule.loadLogs();
+        }
+        this.updateDashboardKPIs();
       });
 
+      // 2. Live Ticket Updated / Status Changed
       evtSource.addEventListener('ticket_updated', (e) => {
-        TicketsModule.loadTickets();
+        if (window.TicketsModule) {
+          TicketsModule.loadTickets();
+          if (TicketsModule.currentTicketId) {
+            TicketsModule.selectSplitTicket(TicketsModule.currentTicketId);
+          }
+        }
+        this.updateDashboardKPIs();
       });
 
+      // 3. Live Ticket Message (Agent or Customer / Telegram)
       evtSource.addEventListener('ticket_message', (e) => {
         const payload = JSON.parse(e.data);
-        if (TicketsModule.currentTicketId === payload.ticketId) {
-          TicketsModule.openDrawer(payload.ticketId);
+        const { ticketId, message, customerName } = payload;
+        this.playNotificationChime();
+
+        const sender = message?.senderName || customerName || 'Customer';
+
+        if (window.TicketsModule && TicketsModule.currentTicketId === ticketId) {
+          // Instantly append live message to active conversation pane
+          TicketsModule.appendLiveMessage(message);
+        } else {
+          // Increment unread count & mark card in queue
+          this.incrementUnread(sender, ticketId);
+          if (window.TicketsModule) {
+            TicketsModule.markTicketUnread(ticketId);
+          }
         }
-        TicketsModule.loadTickets();
+
+        this.showToast(`💬 New message on #${ticketId} from ${sender}`, 'info');
+        if (window.TicketsModule) {
+          TicketsModule.loadTickets();
+        }
+        if (window.TelegramModule) {
+          TelegramModule.loadLogs();
+        }
       });
 
+      // 4. Live Typing Presence Indicator
+      evtSource.addEventListener('typing', (e) => {
+        const payload = JSON.parse(e.data);
+        const currentUserId = window.AuthModule?.currentUser?.id;
+        if (window.TicketsModule && TicketsModule.currentTicketId === payload.ticketId) {
+          if (payload.userId !== currentUserId) {
+            this.handleLiveTyping(payload.user, payload.isTyping);
+          }
+        }
+      });
+
+      // 5. Telegram Gateway Activity
       evtSource.addEventListener('telegram_activity', (e) => {
-        TelegramModule.loadLogs();
+        if (window.TelegramModule) {
+          TelegramModule.loadLogs();
+        }
       });
 
       evtSource.onerror = () => {
         // SSE reconnection handled automatically by browser
       };
     } catch (err) {
-      console.warn('SSE not supported or disabled');
+      console.warn('SSE not supported or disabled', err);
+    }
+  },
+
+  handleLiveTyping(userName, isTyping) {
+    const bar = document.getElementById('splitTypingBar');
+    const text = document.getElementById('splitTypingText');
+    if (!bar || !text) return;
+
+    if (isTyping) {
+      text.textContent = `${userName} is typing...`;
+      bar.classList.remove('hidden');
+
+      clearTimeout(this.typingTimer);
+      this.typingTimer = setTimeout(() => {
+        bar.classList.add('hidden');
+      }, 2500);
+    } else {
+      bar.classList.add('hidden');
     }
   },
 
